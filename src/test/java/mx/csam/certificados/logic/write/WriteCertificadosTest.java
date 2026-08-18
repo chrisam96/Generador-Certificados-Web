@@ -653,11 +653,12 @@ class WriteCertificadosTest {
 		String tmp = "";
 		
 		if(obj != null){
-			String[] array = (String[]) obj;
+			//String[] array = (String[]) obj;
+			Object[] array = (Object[]) obj;
 		
 			for (int i = 0; i < array.length; i++) {
 				if(array[i] != null) {
-					tmp = tmp.concat(array[i]);
+					tmp = tmp.concat(String.valueOf( array[i].toString() ) );
 				}else {
 					tmp = tmp.concat("NULL");					
 				}
@@ -779,10 +780,11 @@ class WriteCertificadosTest {
 		 * - String[] vig_y_serial
 		 * 
 		 * >#3
-		 * Boolean en true para el CerOrCsr
+		 * Boolean en true para el CerOrCsr.
+		 * Boolean en false para el Cifrado.
 		 * 
 		 * >#4
-		 * Verificar que sean un notNull y su tipo de Clase: 
+		 * Verificar que su retorno sean un notNull y su tipo de Clase: 
 		 * 
 		 * - Excepciones:
 		 * java.security.cert.CertificateException
@@ -841,10 +843,10 @@ class WriteCertificadosTest {
 		String[] vigSerial3 = {null, "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};							
 
 		// >>> datosKPG
-		 HashMap<Integer, Object[]> datosKPG = new HashMap<Integer, Object[]>();
-		 int cont = 0;
+		HashMap<Integer, Object[]> datosKPG = new HashMap<Integer, Object[]>();
+		int cont = 0;
 		 
-		 //se agregan los algoritmos RSA; DSA; RSA-PSS; Ed448 y Ed25519
+		 	//se agregan los algoritmos RSA; DSA; RSA-PSS; Ed448 y Ed25519
 		 ArrayList<Arguments> arrLs = (ArrayList<Arguments>)
 				 datos_generarKeyPair()
 				 .collect(Collectors.toList());
@@ -852,20 +854,30 @@ class WriteCertificadosTest {
 		 for (Arguments arg : arrLs) {						
 			//Object tmp = new String[2];
 			datosKPG.put(cont++, arg.get());
-		}
+		 }
 
-		 //se agregan los algoritmos ECDSA y GOST
-		arrLs = (ArrayList<Arguments>)
+		 	//se agregan los algoritmos ECDSA y GOST
+		 arrLs = (ArrayList<Arguments>)
 				 datos_generarKeyPair_EC()
 				 .collect(Collectors.toList());
 		 
 		 for (Arguments arg : arrLs) {						
 			//Object tmp = new String[2];
 			datosKPG.put(cont++, arg.get());
-		}
+		 }
 		
 		// >>> CerOrCsr
 		boolean CERTIFICADO = true;
+		
+		// >>> datosCifrado
+		/* Datos para cifrar
+		 * 0: Booleano para determinar si se cifra (true) o no(false)
+		 * 1: String con el ALGORITMO SIMETRICO para cifrar
+		 * 2: String para la contraseña usada para cifrar la PrivateKey
+		 * */
+		Object[] datosPKCifrado = {false, "N/A", "N/A"};
+		//boolean CIFRADO = Boolean.valueOf(datosCifrado[0].toString());
+		//boolean CIFRADO = false;
 		
 		// >>> _SAN
 		// No aplica
@@ -874,6 +886,7 @@ class WriteCertificadosTest {
 		/// Cantidad de pruebas es dada por datosKPG.size()
 		ArrayList<Object[]> casos =  new ArrayList<Object[]>();
 		
+		//Se agregan todos los datos a un caso de prueba
 		for (int i = 0; i < datosKPG.size(); i++) {
 			Object[] arrObj = {
 				String.valueOf( datosKPG.get(i)[0]), //algoritmo: 0
@@ -884,9 +897,10 @@ class WriteCertificadosTest {
 				(String[]) datosKPG.get(i)[1], //datosKPG : 4
 				"N/A", //ruta: 5
 				CERTIFICADO, //CerOrCsr : 6
-				"N/A",//_SAN : 7
+				datosPKCifrado,//datosPKCifrado : 7
+				"N/A",//_SAN : 8
 				
-				i //# de prueba : 8
+				i //# de prueba : 9
 			};
 			casos.add(arrObj);			
 		}
@@ -898,39 +912,47 @@ class WriteCertificadosTest {
 			System.out.println("\n\n"+caso.toString());
 				//casos.stream().map(
 				//	caso -> () -> {
-					System.out.println("Datos:"
-						+ " \nAlgoritmo>>> " + String.valueOf(caso[0]) 
-						+ " \nTitular DN>>> " + imprimirArreglos(caso[1]) 
-						+ " \nEmisor DN>>> " + imprimirArreglos(caso[2]) 
-						+ " \nVig_y_serial>>> " + imprimirArreglos(caso[3]) 
-						+ " \nDatosKPG>>> " + imprimirArreglos(caso[4], caso[0]) 
-						+ " \nRuta>>> " + String.valueOf(caso[5])
-						+ " \nCerOrCsr>>> " + String.valueOf(caso[6])  
-						+ " \nSANs>>> " + String.valueOf(caso[7])
-						+ " \nNo. Prueba>>> " + String.valueOf(caso[8])
-						+ "");
+			
+			//Se imprimen un caso de prueba
+			System.out.println("Datos:"
+				+ " \nAlgoritmo>>> " + String.valueOf(caso[0]) 
+				+ " \nTitular DN>>> " + imprimirArreglos(caso[1]) 
+				+ " \nEmisor DN>>> " + imprimirArreglos(caso[2]) 
+				+ " \nVig_y_serial>>> " + imprimirArreglos(caso[3]) 
+				+ " \nDatosKPG>>> " + imprimirArreglos(caso[4], caso[0]) 
+				+ " \nRuta>>> " + String.valueOf(caso[5])
+				+ " \nCerOrCsr>>> " + String.valueOf(caso[6])  
+				+ " \nDatos PK Cifrado>>> " + imprimirArreglos(caso[7])
+				+ " \nSANs>>> " + String.valueOf(caso[8])
+				+ " \nNo. Prueba>>> " + String.valueOf(caso[9])
+				+ "");
 
-					//Varaibles aplicadas en la prueba
-					String _algoritmo = String.valueOf(caso[0]);
-					String[] _titularDN = (String[]) caso[1]; 
-					String[] _emisorDN = (String[]) caso[2]; 
-					String[] _vig_y_serial = (String[]) caso[3];
-					
-					String[] _datosKPG = (String[])caso[4]; 
-					String _ruta = String.valueOf(caso[5]);
-					boolean _CERTIFICADO = Boolean.valueOf( String.valueOf(caso[6]) );  
-					Map<String, String[]> __SAN = null;
-					int _num = Integer.parseInt(String.valueOf(caso[8]));
-					
-					System.out.println("\n");
+			//Varaibles aplicadas en la prueba
+			String _algoritmo = String.valueOf(caso[0]);
+			String[] _titularDN = (String[]) caso[1]; 
+			String[] _emisorDN = (String[]) caso[2]; 
+			String[] _fecha_vig_y_serial = (String[]) caso[3];
+			
+			String[] _datosKPG = (String[])caso[4]; 
+			String _ruta = String.valueOf(caso[5]);
+			boolean _CERTIFICADO = Boolean.valueOf( String.valueOf(caso[6]) ); 
+			
+			Object[] _DATOS_PK_CIFRADO = (Object[])caso[7]; 
+			Map<String, String[]> __SAN = null; //caso[8]
+			int _num = Integer.parseInt(String.valueOf(caso[9]));
+			
+			System.out.println("\n");
 					
 					Object[] res = w.generarCertificadoOrCsr(
 							_algoritmo, 
 							_titularDN, 
 							_emisorDN, 
-							_vig_y_serial, 
+							
+							_fecha_vig_y_serial,							
 							_datosKPG, 
 							_CERTIFICADO, 
+							
+							_DATOS_PK_CIFRADO,							
 							__SAN
 					);
 					/*

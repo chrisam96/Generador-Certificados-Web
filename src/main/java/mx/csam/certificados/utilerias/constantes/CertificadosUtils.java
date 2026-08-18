@@ -5,6 +5,7 @@ import java.security.spec.MGF1ParameterSpec;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -16,6 +17,8 @@ import org.bouncycastle.asn1.ASN1GeneralizedTime;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERUTF8String;
+import org.bouncycastle.openssl.PKCS8Generator;
+import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8EncryptorBuilder;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 
@@ -77,18 +80,51 @@ public final class CertificadosUtils {
 		ArrayList<String> arr =  new ArrayList<String>();
 		
 		for (String[] unaLista : listas) {
-			/*for(String unElem : unaLista) {
-				arr.add(unElem);
-			}*/
-			
+			/*Transforma el array en una List<>
+			 * Posteriormente agrega todo a otra List<>*/			
 			arr.addAll( Arrays.asList(unaLista) );
 		}
 		
-				//Es como si fuera un (String[])arr.toArray();
+		//Es como si fuera un (String[])arr.toArray();
+		/*Object[]: el array original 
+		 *int: la cantidad de elementos a copiar (se rellena con nulls si
+		 *		es necesario)
+		 *Class<? extends T>: El tipo de clase a retornar
+		 * */
 		return Arrays.copyOf(arr.toArray(), arr.toArray().length, String[].class);
 	}
-	
-	//private class ALGORTIMOS_FAM_EC {			
+		
+	/**
+	 * Clase interna con la FAMILIA DE ALGORITMO DE CURVAS ELIPTICAS (EC) <br>
+	 * <p>Incluye:</p>
+	 * 
+	 * 	<ul>
+	 * 		<li>SECG o NIST (son lo mismo): 
+	 * 		<ul>
+	 * 			<li>SECP: Curvas sobre campos primos
+	 * 			<li>SECT: Curvas binarias
+	 * 			<li>Curvas NIST más usadas tipo SECP
+	 * 		</ul>
+	 * 		<li>Brainpool (algoritmos empleados en Europa):
+	 * 		<ul>
+	 * 			<li>Lista de algorimtos
+	 * 			<li>Brainpool más usados
+	 * 		</ul>
+	 * 		<li>Curvas Modernas:
+	 * 		<ul>
+	 * 			<li>RFC_7748: Para intercambio de claves
+	 * 			<li>RFC_8032: Para firmas modernas
+	 * 			<li>ANSI_X9_62: Curvas ANSI X9.62 (similares a SECP)
+	 * 		</ul>
+	 * 		<li>GOST (algoritmos usados en Rusia):
+	 * 		<ul> 
+	 * 			<li>ECGOSTT3410
+	 * 			<li>ECGOSTT3410-2012
+	 * 		</ul>
+	 * 	</ul>
+	 * 
+	 * 		
+	 */
 	public static class ALGORTIMOS_FAM_EC {			
 		
  		public final class SECG_o_NIST{			
@@ -181,18 +217,36 @@ public final class CertificadosUtils {
 		};
 		
 		public final class GOST{
-			//Gen_curva
+			//Gen_curva: GENERACIÓN DE LA CURVA
 			public static final String[] algoritmos_de_clave
 			= new String[] {"ECGOST3410", "ECGOST3410-2012"};
 			
-			//Gen_curva
+			//Gen_curva: GENERACIÓN DE LA CURVA
 			public static final String[] gen_curva
 				= new String[] {"ECGOST3410", "ECGOST3410-2012 (256)", "ECGOST3410-2012 (512)"};
 			
-			
+			/** 
+			 * Devuelve una {@code MultiValueMap<String,String>} (aka {@code LinkedHashMap<String,ArrayList<String>>}) dividido por la generación del
+			 * algoritmo y la cantidad de BITS empleada.
+			 * 
+			 * La lista esta dividida en 
+			 * <ul>
+			 * 	<li> Algoritmos viejos: ECGOST3410 (2001)
+			 * 	<li> Algoritmos nuevos: ECGOST3410-2012 (2012)
+			 * </ul>
+			 * 
+			 * La lista  de algoritmos nuevos esta subdividida en la cantidad de bit 
+			 * <ul>
+			 * 	<li> 256
+			 * 	<li> 512
+			 * </ul>
+			 * 
+			 * @return {@code MultiValueMap<String,String>}
+			 * 
+			 * */
 			public static final MultiValueMap<String, String> parametros_de_curva_GOST(){
 				MultiValueMap<String, String> map = new LinkedMultiValueMap<String, String>();
-				//{"GostR3410-2001-CryptoPro-A", "Tc26-Gost-3410-12-256-paramSetA"};
+
 				map.put("ECGOST3410", List.of(
 						"GostR3410-2001-CryptoPro-A", 
 						"GostR3410-2001-CryptoPro-B", 
@@ -221,13 +275,12 @@ public final class CertificadosUtils {
 			}
 			
 			public static final HashMap<String, String> algoritmos_de_firma(){
-				//{"GOST3411withECGOST3410", "GOST3411-2012-256withECGOST3410-2012-256", "GOST3411-2012-256WITHECGOST3410-2012-512"};
+				
 				HashMap<String, String> map = new HashMap<String, String>();
 				
 				map.put("ECGOST3410", "GOST3411withECGOST3410");
 				map.put("ECGOST3410-2012 (256)", "GOST3411-2012-256withECGOST3410-2012-256");
 				map.put("ECGOST3410-2012 (512)", "GOST3411-2012-256WITHECGOST3410-2012-512");
-				
 				
 				return map;
 			}
@@ -262,19 +315,24 @@ public final class CertificadosUtils {
 	public String [] tamanio_de_hash_firma_SHA2 = {"224", "256", "384", "512", "512/224","512/256"};
 	public String [] tamanio_de_hash_firma_SHA3 = {"224", "256", "384", "512"};
 	
-	//Plantilla para el Algoritmo de Hashing
 	/**
-	* [XXX] define si es SHA1, MD2 MD5, SHA-XXX (SHA2) o SHA3-XXX<rbr>
-	* [YYY] define si el algoritmo asimetrico con el que se combina<br>
-	* [ZZZ] es para el "andMGF1" del RSA-PSS<br>
+	* Plantilla para el Algoritmo de Hashing<br><br>
+	* <ul>
+	* 	<li>[XXX] define si es SHA1, MD2 MD5, SHA-XXX (SHA2) o SHA3-XXX<rbr>
+	* 	<li>[YYY] define si el algoritmo asimetrico con el que se combina<br>
+	* 	<li>[ZZZ] es para el "andMGF1" del RSA-PSS<br>
+	* </ul>
 	*  <br>
-	* Nota:<p>
-	*	"MD2withRSA" para MD2<br>
-	*	"MD5withRSA" para MD5<br>
-	*	"SHA1withRSA" para SHA1<br>
-	*	"SHA256withRSA" para SHA2<br>
-	*	"SHA3-256withRSA" para SHA3<br>
+	* Nota:
+	* <ul>
+	*	<li>"MD2withRSA" para MD2
+	*	<li>"MD5withRSA" para MD5
+	*	<li>"SHA1withRSA" para SHA1
+	*	<li>"SHA256withRSA" para SHA2
+	*	<li>"SHA3-256withRSA" para SHA3
+	*</ul>
 	* </p>
+	* @return String
 	*/
 	public static String plantilla_algoritmo_para_firmar() { 
 		String firma = "[XXX]with[YYY][ZZZ]";
@@ -295,10 +353,15 @@ public final class CertificadosUtils {
 	 */			
 	
 	/**
-	 * Indica los Hashes dispoinles de acuerda a la generación de la familia SHA.. 
+	 * Indica los Hashes disponibles de acuerdo a la generación de la familia SHA.
+	 * Devuelve una Map de la forma {@code MultiValueMap<String,String>} o lo que
+	 * es lo mismo, un {@code LinkedHashMap<String,ArrayList<String>>} 
+	 * 
+	 * @return {@code LinkedMultiValueMap<String,String>} 
+	 * @return {@code LinkedHashMap<String,ArrayList<String>>} 
 	 * 
 	*/
-	public final MultiValueMap<String,String> lista_generacion_algoritmo_SHA(){
+	public final MultiValueMap<String,String> lista_generaciones_algoritmo_SHA(){
 		MultiValueMap<String, String> generaciones =  new LinkedMultiValueMap<String, String>();
 		
 		ArrayList<String> gen1 =  new ArrayList<String>();
@@ -325,9 +388,11 @@ public final class CertificadosUtils {
 	}
 	
 	/**
-	 * Tamanio de la Sal en BITS que por defecto maneja cada hash del SHA. 
+	 * Tamaño de la Sal en BITS que por defecto maneja cada hash del SHA. 
 	 * <p> En caso de usar la sal por defecto y no una personalizada se debe
-	 * usar el método {@link tamanioHashSegunSHA()} para devolver el valor.
+	 * usar el método {@link listaTamanioBITSSegunSHA()} que implementa un 
+	 * wrapper Optional<> para devolver el valor o uno por defecto 512.
+	 * </p>
 	 */
 	public static final Map<String, Integer> listaTamanioBITSSegunSHA(){
 		final HashMap<String, Integer> map =  new HashMap<String, Integer>();
@@ -345,16 +410,19 @@ public final class CertificadosUtils {
 		map.put("SHA3-256", 256);
 		map.put("SHA3-384", 384);
 		map.put("SHA3-512", 512);
-		//map.put("SHA3-512/224", 224);
-		//map.put("SHA3-512/256", 256);
 		
 		return map;
 	}
 	
-	/**Devuelve el tamaño en BITS de la implementacion del SHA pasada
+	/**
+	 * Devuelve el tamaño en BITS de la implementacion del SHA pasada
 	 * en el parámetro
 	 * <p> En caso de usar la sal por defecto y no una personalizada se debe
 	 * usar este método para devolver el valor
+	 * 
+	 * @param SHA Algoritmo SHA
+	 * 
+	 * @return int
 	 * */
 	public int tamanioBITSSegunSHA(String SHA) {		
 		return listaTamanioBITSSegunSHA().getOrDefault(SHA, 512);
@@ -364,6 +432,8 @@ public final class CertificadosUtils {
 	 * Tamanio de la Sal en BYTES que por defecto maneja cada hash del SHA. 
 	 * <p> En caso de usar la sal por defecto y no una personalizada se debe
 	 * usar el método {@link tamanioHashSegunSHA()} para devolver el valor.
+	 * 
+	 * @return {@code final Map<String, Integer>}
 	*/
 	public static final Map<String, Integer> listaTamanioBytesSegunSHA(){
 		final HashMap<String, Integer> map =  new HashMap<String, Integer>();
@@ -420,10 +490,16 @@ public final class CertificadosUtils {
 	}
 	
 	
-	/**Valida que los parametros del tamaño del SHA (en bytes), 
+	/**
+	 * Valida que los parametros del tamaño del SHA (en bytes), 
 	 * el tamaño de la Clave (en bits) y el tamaño de la Sal puedan servir 
 	 * para el algoritmo de RSA-PSS
 	 * 
+	 * @param tamHashSHA El tamaño de bits del algoritmo SHA
+	 * @param tamClaveBits El tamaño de bits usado para inicializar el KeyPairGenerator 
+	 * @param tamSal Tamaño usado para la "sal"
+	 * 
+	 * @return boolean
 	 * */
 	public static boolean validarSalt_TamSHA_ClaveBits
 	(String tamHashSHA, String tamClaveBits, String tamSal) {
@@ -503,7 +579,7 @@ public final class CertificadosUtils {
 	 * No admite signos negativos ni puntos/comas decimales
 	 * 
 	 * @param txt
-	 * @return
+	 * @return boolean
 	 */
 	public static boolean validarQueEsNumero(String txt) {
 		boolean veredicto = true;
@@ -526,7 +602,10 @@ public final class CertificadosUtils {
 	
 	// --------------------------------------------------------------------
 	// PARAMETROS DEL RSA-PSS
-	
+
+	/**
+	 * 
+	 * */
 	public static Map<String, MGF1ParameterSpec> listaPSSParameterSpec(){
 		HashMap<String, MGF1ParameterSpec> lista = new HashMap<String, MGF1ParameterSpec>();
 		lista.put("MD2", null);
@@ -545,6 +624,9 @@ public final class CertificadosUtils {
 		return lista;
 	}
 	
+	// --------------------------------------------------------------------
+	// VALIDACIONES DE TAMAÑOS EN CLAVE DE BITS Y HASH SHA PARA DSA	
+	
 	/**
 	 * 
 	 * <p>Hay restricciones en tamaños aprobados históricamente por pares L/N 
@@ -561,6 +643,9 @@ public final class CertificadosUtils {
 	 *	| 3072                | SHA-256                       |
 	 *	| ------------------- | ----------------------------- |
 	 *</pre>
+	 *
+	 * @param tamClave (String) Tamaño de la clave a validar
+	 * @return boolean
 	 * */
 	public static boolean validarEnDSAMinMaxTamClave(String tamClave) {
 		int tamanio = 0;
@@ -593,6 +678,9 @@ public final class CertificadosUtils {
 	 *	| 3072                | SHA-256                       |
 	 *	| ------------------- | ----------------------------- |
 	 *</pre>
+	 *
+	 * @param tamClave (String) Tamaño de la clave a validar
+	 * @return boolean
 	 * */
 	public static boolean validarEnDSA_HashSHA_TamClave(String HashSHA, String tamClave) {
 		boolean valido = false;
@@ -617,6 +705,10 @@ public final class CertificadosUtils {
 		return valido;
 	}
 	
+	// --------------------------------------------------------------------
+	/* GENERADOR DE FIRMAS DEL KEY_PAIR_GENERATOR 
+	 PARA ALGORITMOS DE CURVAS ELIPTICAS */
+	
 	/**</pre>
 	* */
 	public static String firmaEnGOST(String genCurva, String curvaInit ) {
@@ -639,12 +731,27 @@ public final class CertificadosUtils {
 		}
 	}
 	
-	/**</pre>
+	/**
+	 * Devuelve el algoritmo de la firma en base a la curva inicializadora
+	 * pasada como argumento (String).
+	 * <p>
+	 * Consta de varios pasos para elegir el tamaño adecuado del hash SHA 
+	 * siendo:
+	 * <ul>
+	 * 		<li> Eliminar el sufijo del nombre de la curva inicializadora
+	 * 		<li> Eliminar el prefijo en el mismo nombre
+	 * 		<li> Elegir el tamaño del SHA basado en el número obtenido
+	 * </ul>  
+	 * <pre>
+	 * </pre>
+	 * @param  curvaInit {String} La curva inicializadora de la curva eliptica
+	 * @return String
+	 * 
 	 * */
 	public static String firmaEnEC(String curvaInit ) {
 		
 		/*
-		 * Es más universal pero peca de ser  más lento
+		 * Es más universal pero peca de ser más lento
 		 * 
 		//Elimina los subindices de la curva EC para buscar un aproximado
 		String[] EC_sufijos = { "r1", "t1", "v1", "k1", "r2", "Ed", "X" }; 
@@ -726,6 +833,7 @@ public final class CertificadosUtils {
 	// PARAMETROS DEL ARCHIVO CREADO
 	
 	//Bandera de Encryptado
+	@Deprecated
 	public static boolean es_encryptado = false;
 	
 	//Extension de Certificado
@@ -781,8 +889,220 @@ public final class CertificadosUtils {
 		
 		return mapa;
 	}
+
+	// --------------------------------------------------------------------
+	// ALGORITMOS SIMETRICOS PARA ENCRIPTAR PRIVATE_KEY (PKCS#8)	
 	
+	/***
+	 * 
+	 */
+	public static String [] algoritmo_simetrico = {
+		/* --------------------------------------
+		 * Esquema MODERNO PBES2 / PBKFD2
+		 *  */
+		// AES
+		"AES_128_CBC",
+		"AES_192_CBC",
+		"AES_256_CBC",
 		
+		// 3DES
+		"DES3_CBC",
+		
+		// SM4 (CBC moderno)
+		//"SM4_CBC",
+		
+		/* --------------------------------------
+		 * Esquema HISTORICO PBE
+		 *  */
+		
+		// PBE históricos
+		"PBE_SHA1_2DES",
+		"PBE_SHA1_3DES",
+		"PBE_SHA1_RC2_128",
+		"PBE_SHA1_RC2_40",
+		"PBE_SHA1_RC4_128",
+		"PBE_SHA1_RC4_40"
+	};
+	
+	/**
+	 * Devuelve una lista de tipo {@code LinkedHashMap<String,ArrayList<String>>}
+	 * organizado por la generación del esquema
+	 * @return {@code LinkedHashMap<String, ArrayList<String>>}
+	 */
+	public static LinkedHashMap<String,ArrayList<String>> lista_generaciones_algoritmo_simetrico(){
+		LinkedHashMap<String, ArrayList<String>> lista = new LinkedHashMap<String, ArrayList<String>>();
+		ArrayList<String> esquemaPBES2 = new ArrayList<String>();
+		ArrayList<String> esquemaPBE = new ArrayList<String>();
+		
+		// Esquema MODERNO PBES2 / PBKFD2
+		esquemaPBES2.add("AES_128_CBC");
+		esquemaPBES2.add("AES_192_CBC");
+		esquemaPBES2.add("AES_256_CBC");
+		esquemaPBES2.add("DES3_CBC");
+		//esquemaPBES2.add("SM4_CBC");
+		
+		// Esquema HISTORICO PBE
+		esquemaPBE.add("PBE_SHA1_2DES");
+		esquemaPBE.add("PBE_SHA1_3DES");
+		esquemaPBE.add("PBE_SHA1_RC2_128");
+		esquemaPBE.add("PBE_SHA1_RC2_40");
+		esquemaPBE.add("PBE_SHA1_RC4_128");
+		esquemaPBE.add("PBE_SHA1_RC4_40");		
+		
+		lista.put("PBES2", esquemaPBES2);
+		lista.put("PBE", esquemaPBE);
+		
+		return lista;
+	}
+		
+	/**
+	 * Devuelve una lista de tipo {@code LinkedHashMap<String,ArrayList<String>>}
+	 * separado por la FAMILIA del esquema
+	 * @return {@code LinkedHashMap<String,ArrayList<String>>}
+	 */
+	public static LinkedHashMap<String,ArrayList<Object[]>> lista_familia_algoritmo_simetrico(){
+		LinkedHashMap<String, ArrayList<Object[]>> lista = new LinkedHashMap<String, ArrayList<Object[]>>();
+		ArrayList<Object[]> familiaAES = new ArrayList<Object[]>();
+		ArrayList<Object[]> familia3DES = new ArrayList<Object[]>();
+		//ArrayList<Object[]> familiaSM4 = new ArrayList<Object[]>();
+		ArrayList<Object[]> familiaPBE = new ArrayList<Object[]>();
+		
+		// AES
+		Object[] aes = { "AES_128_CBC", "AES_192_CBC", "AES_256_CBC" };
+		
+		// 3DES/DES3
+		Object[] des3 = {"DES3_CBC"};
+		
+		// SM4 (CBC moderno)
+		//Object[] sm4 = {"SM4_CBC"};
+		
+		// PBE históricos
+		Object[] pbe = { "PBE_SHA1_2DES", "PBE_SHA1_3DES", 
+				"PBE_SHA1_RC2_128", "PBE_SHA1_RC2_40", 
+				"PBE_SHA1_RC4_128", "PBE_SHA1_RC4_40" };
+		
+		lista.put("AES", familiaAES);
+		lista.put("PBE", familia3DES);
+		//lista.put("SM4", familiaSM4);
+		lista.put("PBE", familiaPBE);
+		
+		return lista;
+	}
+	
+	/**
+	 * Devuelve un ASN1ObjectIdentifier correspondiente al algoritmo
+	 * enviado como String
+	 * @param nombre Nombre del algoritmo simetrico
+	 * @return
+	 */
+	public static ASN1ObjectIdentifier elegirAlgoritmoSimetricoParaPKCS8(String nombre) {
+		ASN1ObjectIdentifier algoritmo = null;
+				
+		JceOpenSSLPKCS8EncryptorBuilder jceOpenSSLPKCS8EncryptorBuilder 
+		= 
+		new JceOpenSSLPKCS8EncryptorBuilder(PKCS8Generator.AES_256_CBC);
+        ;       
+        
+        
+		algoritmo = switch(nombre) {
+			
+		//Esquema Moderno PBES2 / PBKDF2
+			// AES
+			case "AES_128_CBC"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			case "AES_192_CBC"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			case "AES_256_CBC"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			
+			// 3DES
+			case "DES3_CBC"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			// CBC moderno
+			/* No existe la constante en la clase
+			 * PKCS8Generator
+			 * 
+			 * case "SM4_CBC" -> {
+				yield null;
+			}*/
+		//Esquemas Historicos PBE	
+			// PBE históricos
+			case "PBE_SHA1_2DES"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			case "PBE_SHA1_3DES"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			case "PBE_SHA1_RC2_128"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			case "PBE_SHA1_RC2_40"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			case "PBE_SHA1_RC4_128"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}
+			case "PBE_SHA1_RC4_40"-> {
+				yield PKCS8Generator.AES_256_CBC;
+				}			
+			
+			default -> {
+				yield PKCS8Generator.AES_256_CBC;
+			}
+			
+		};
+		
+		return algoritmo;
+	}
+
+	// --------------------------------------------------------------------
+	// METADATOS DEL ARCHIVO
+	public static String[] lista_formatos_Charset= {"UTF-8", "ISO-8859-1"};
+	
+	//Formato de codificación de caraácteres para los archivos
+	private static String charset = "UTF-8";
+	
+	/**
+	 * Establece el formato de codificación de caraácteres 
+	 * para los archivos, entre UTF-8 y ISO-8859-1
+	 * @param formato String
+	 */
+	public static void estableceCharset(String formato) {
+		charset = formato;
+	}
+	
+	/**
+	 * Establece el formato de codificación de caraácteres 
+	 * para los archivos, entre UTF-8 y ISO-8859-1
+	 * @param formato String
+	 */
+	public static void setCharset(String formato) {
+		charset = formato;
+	}
+	
+	/**
+	 * Devuelve el formato de codificación de caraácteres 
+	 * para los archivos configurado entre UTF-8 y ISO-8859-1
+	 * @return String
+	 */
+	public static String obtenFormatoCharset() {
+		return charset;
+	}
+	
+	/**
+	 * Devuevle el formato de codificación de caraácteres 
+	 * para los archivos configurado entre UTF_8 y ISO-8859-1.
+	 * @return String
+	 */
+	public static String getCharsetString() {
+		return charset;
+	}
+
+	
 	
 	// --------------------------------------------------------------------
 	//Ejemplos usando Templates (Genericos)
@@ -807,6 +1127,7 @@ public final class CertificadosUtils {
 		CertificadosUtils c = new CertificadosUtils();
 		//herramientaEnum jkt = c.herramientaEnum.JavaKeytool;
 		CertificadosUtils.herramientaEnum jkt = CertificadosUtils.herramientaEnum.JavaKeytool;
+		//jkt es del tipo CertificadosUtils.herramientaEnum
 		return obj;
 	}
 	// --------------------------------------------------------------------
@@ -819,7 +1140,7 @@ public final class CertificadosUtils {
 			int value = 3; 
 			float value2 = 3.0f;
 			
-			public String toString() { 
+			public String metodo() { 
 				return "Java Keytool"; 
 			} 
 		}
