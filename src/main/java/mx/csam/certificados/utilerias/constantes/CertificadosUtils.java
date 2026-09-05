@@ -960,8 +960,10 @@ public final class CertificadosUtils {
 	 * separado por la FAMILIA del esquema
 	 * @return {@code LinkedHashMap<String,ArrayList<String>>}
 	 */
-	public static LinkedHashMap<String,ArrayList<Object[]>> lista_familia_algoritmo_simetrico(){
-		LinkedHashMap<String, ArrayList<Object[]>> lista = new LinkedHashMap<String, ArrayList<Object[]>>();
+	//public static LinkedHashMap<String,ArrayList<Object[]>> lista_familia_algoritmo_simetrico(){
+	public static LinkedHashMap<String,Object[]> lista_familia_algoritmo_simetrico(){
+		//LinkedHashMap<String, ArrayList<Object[]>> lista = new LinkedHashMap<String, ArrayList<Object[]>>();
+		LinkedHashMap<String, Object[]> lista = new LinkedHashMap<String, Object[]>();
 		ArrayList<Object[]> familiaAES = new ArrayList<Object[]>();
 		ArrayList<Object[]> familia3DES = new ArrayList<Object[]>();
 		//ArrayList<Object[]> familiaSM4 = new ArrayList<Object[]>();
@@ -981,10 +983,10 @@ public final class CertificadosUtils {
 				"PBE_SHA1_RC2_128", "PBE_SHA1_RC2_40", 
 				"PBE_SHA1_RC4_128", "PBE_SHA1_RC4_40" };
 		
-		lista.put("AES", familiaAES);
-		lista.put("PBE", familia3DES);
+		lista.put("AES", aes);
+		lista.put("PBE", des3);
 		//lista.put("SM4", familiaSM4);
-		lista.put("PBE", familiaPBE);
+		lista.put("PBE", pbe);
 		
 		return lista;
 	}

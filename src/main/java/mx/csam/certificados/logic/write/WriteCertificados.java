@@ -156,71 +156,7 @@ public class WriteCertificados {
 		return resultado;
 	} 
 	
-	/*Poner al final de todo el código*/
-	/**
-	 * Método encargado de cifrar una PrivateKey mediante un 
-	 * algorimto SIMETRICO especificado y una contraseña que se usara
-	 * para derivarla mediante un KDF (Key Derivation Function) 
-	 * crear un IV (Vector de Inicialización) para dicho algorimtmo.
-	 * 
-	 * @param pKey PrivateKey a cifrar
-	 * @param algCifradoPK Nombre del algoritmo simetrico (interoperable
-	 * con los demás)
-	 * @param pass Contraseña para generar el IV del algoritmo
-	 * @return {@link JcaPKCS8Generator}
-	 * @throws OperatorCreationException
-	 * @throws PemGenerationException
-	 */
-	private JcaPKCS8Generator cifrarPrivateKey(PrivateKey pKey, String algCifradoPK, String pass) 
-		throws OperatorCreationException, PemGenerationException {
-		
-		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
-		Security.addProvider(new BouncyCastleProvider());
-		
-		/*Se indica el algoritmo SIMETRICO que se usara 
-		 * para el cifrado de la Private Key*/
-		JceOpenSSLPKCS8EncryptorBuilder encryptorBuilder 
-		= 
-		new JceOpenSSLPKCS8EncryptorBuilder(
-			CertificadosUtils.elegirAlgoritmoSimetricoParaPKCS8(algCifradoPK)
-		);
-		
-        /*Se agrega la contraseña que se usará para derivarla
-         *mediante un KDF (Key Derivation Function para así
-         *crear el IV (Vector de Inicialización) empleado en el
-         *algoritmo siemtrico*/
-		encryptorBuilder.setPassword(pass.toCharArray());
-		encryptorBuilder.setProvider("BC");
-					
-		OutputEncryptor outputEncryptor = encryptorBuilder.build();
-		
-		/* Aquí generamos la PrivateKey cifada con 2 parametros:
-		 * 0: PrivateKey
-		 * 1: Algoritmo (JceOpenSSLPKCS8EncryptorBuilder)
-		 * 
-		 * Para generar el objeto PEM:
-         *
-         * -----BEGIN ENCRYPTED PRIVATE KEY-----
-		 * */
-		JcaPKCS8Generator pkcs8Cifrado =
-				new JcaPKCS8Generator(pKey, outputEncryptor);
-		
-		
-		return pkcs8Cifrado;
-	}
 
-	private String passwordArchivoCifrado(String algoritmo, String pass) {
-		/* Datos para cifrar 
-		 * 1: String con el ALGORITMO SIMETRICO para cifrar
-		 * 2: String para la contraseña usada para cifrar la PrivateKey
-		 * */
-		String msg = """				
-				La contraseña es:"""+pass+
-				""" 				
-				\nEl algoritmo usado es:"""+algoritmo+"""
-				""";
-		return msg;
-	}
 
 	/**
 	 * Metódo que generará los datos internos necesarios para 
@@ -1989,5 +1925,70 @@ public class WriteCertificados {
 			System.out.println("Excepcion generada:\n");
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Método encargado de cifrar una PrivateKey mediante un 
+	 * algorimto SIMETRICO especificado y una contraseña que se usara
+	 * para derivarla mediante un KDF (Key Derivation Function) 
+	 * crear un IV (Vector de Inicialización) para dicho algorimtmo.
+	 * 
+	 * @param pKey PrivateKey a cifrar
+	 * @param algCifradoPK Nombre del algoritmo simetrico (interoperable
+	 * con los demás)
+	 * @param pass Contraseña para generar el IV del algoritmo
+	 * @return {@link JcaPKCS8Generator}
+	 * @throws OperatorCreationException
+	 * @throws PemGenerationException
+	 */
+	private JcaPKCS8Generator cifrarPrivateKey(PrivateKey pKey, String algCifradoPK, String pass) 
+		throws OperatorCreationException, PemGenerationException {
+		
+		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
+		Security.addProvider(new BouncyCastleProvider());
+		
+		/*Se indica el algoritmo SIMETRICO que se usara 
+		 * para el cifrado de la Private Key*/
+		JceOpenSSLPKCS8EncryptorBuilder encryptorBuilder 
+		= 
+		new JceOpenSSLPKCS8EncryptorBuilder(
+			CertificadosUtils.elegirAlgoritmoSimetricoParaPKCS8(algCifradoPK)
+		);
+		
+        /*Se agrega la contraseña que se usará para derivarla
+         *mediante un KDF (Key Derivation Function para así
+         *crear el IV (Vector de Inicialización) empleado en el
+         *algoritmo siemtrico*/
+		encryptorBuilder.setPassword(pass.toCharArray());
+		encryptorBuilder.setProvider("BC");
+					
+		OutputEncryptor outputEncryptor = encryptorBuilder.build();
+		
+		/* Aquí generamos la PrivateKey cifada con 2 parametros:
+		 * 0: PrivateKey
+		 * 1: Algoritmo (JceOpenSSLPKCS8EncryptorBuilder)
+		 * 
+		 * Para generar el objeto PEM:
+         *
+         * -----BEGIN ENCRYPTED PRIVATE KEY-----
+		 * */
+		JcaPKCS8Generator pkcs8Cifrado =
+				new JcaPKCS8Generator(pKey, outputEncryptor);
+		
+		
+		return pkcs8Cifrado;
+	}
+
+	private String passwordArchivoCifrado(String algoritmo, String pass) {
+		/* Datos para cifrar 
+		 * 1: String con el ALGORITMO SIMETRICO para cifrar
+		 * 2: String para la contraseña usada para cifrar la PrivateKey
+		 * */
+		String msg = """				
+				La contraseña es:"""+pass+
+				""" 				
+				\nEl algoritmo usado es:"""+algoritmo+"""
+				""";
+		return msg;
 	}
 }
