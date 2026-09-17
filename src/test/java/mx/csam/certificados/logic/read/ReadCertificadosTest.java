@@ -19,6 +19,8 @@ import java.util.Date;
 
 import javax.security.auth.x500.X500Principal;
 
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCSException;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.MethodOrderer;
@@ -352,7 +354,7 @@ class ReadCertificadosTest {
 				========= ReadCertificados.leerPublicKeyPEM =========
 				
 				====================================================
-				PUBLIC KEY - PEM
+				PRIVATE KEY - PEM
 				====================================================
 				Imprimiendo contenido\n\n
 				""" + "\n" + msj.toString());
@@ -380,7 +382,7 @@ class ReadCertificadosTest {
 				========= ReadCertificados.leerPublicKeyPEM =========
 				
 				====================================================
-				PUBLIC KEY - DER
+				PRIVATE KEY - DER
 				====================================================
 				Imprimiendo contenido\n\n
 				""" + "\n" + msj.toString());
@@ -485,6 +487,108 @@ class ReadCertificadosTest {
 			e.printStackTrace();
 		}			
 		//assertThat(lista).hasSize(10);
+		
+	}
+	
+	
+	@Order(5)
+	@Test
+	//@ParameterizedTest
+	//@MethodSource("datos_generarKeyPair_EC")
+	//@Disabled
+	@DisplayName("Validar leerPrivateKey() - codif: PEM, DER + Con EncryptedPrivateKey")
+	public void test5() {
+		
+		System.out.println("""
+				\n\n
+				====================================================
+				Test #5
+				====================================================
+				""");	
+		
+		String ruta = "D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key\\";
+		ReadCertificados rc = new ReadCertificados();
+		
+		File[] lista = null;		
+		PrivateKey pk = null;
+		File arch = null;
+		
+		try {
+			/*-----------------------------------------------------
+			 * PEM*/
+			String codif = "PEM_enc";
+			
+			lista = listarArchivosPorExtension(ruta+codif, ".key", false);
+			arch = seleccionArchivo(lista);
+			
+			pk = rc.descifrarEncryptedPrivateKeyPEM(arch.getAbsolutePath(), "pass");
+			
+			//Uso StringBuilder para no ahogar el pool String
+			StringBuilder msj = new StringBuilder(		        
+					//Datos de la Public Key
+					"Ruta: " + arch.getAbsolutePath() + "\n" +
+					"Nom: " + arch.getName() + "\n" +
+					"Codif: " + codif + "\n" +
+					"Clave privada: " + pk.getFormat() + "\n" +
+					"Algoritmo de clave privada: "
+					+ pk.getAlgorithm() + "\n" 
+					);
+			
+			assertNotNull(pk);
+			
+			System.out.println("""
+				========= ReadCertificados.leerPublicKeyPEM =========
+				
+				====================================================
+				PRIVATE KEY - PEM + Encrypted
+				====================================================
+				Imprimiendo contenido\n\n
+				""" + "\n" + msj.toString());
+			/*-----------------------------------------------------
+			 * DER*/
+			codif = "DER_enc";
+			
+			lista = listarArchivosPorExtension(ruta+codif, ".key", false);
+			arch = seleccionArchivo(lista);
+			
+			pk = rc.descifrarEncryptedPrivateKeyDER(arch.getAbsolutePath(), "pass");			
+			
+			//Uso StringBuilder para no ahogar el pool String
+			msj = new StringBuilder(		        
+					//Datos de la Public Key
+					"Ruta: " + arch.getAbsolutePath() + "\n" +
+					"Nom: " + arch.getName() + "\n" +
+					"Codif: " + codif + "\n" +
+					"Clave privada: " + pk.getFormat() + "\n" +
+					"Algoritmo de clave privada: "
+					+ pk.getAlgorithm() + "\n" 
+					);
+			
+			System.out.println("""				
+				========= ReadCertificados.leerPublicKeyPEM =========
+				
+				====================================================
+				PRIVATE KEY - DER + Encrypted
+				====================================================
+				Imprimiendo contenido\n\n
+				""" + "\n" + msj.toString());
+			
+			assertNotNull(pk);
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}			
+		catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (OperatorCreationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (PKCSException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
 	}
 	
