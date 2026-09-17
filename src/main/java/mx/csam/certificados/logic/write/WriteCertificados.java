@@ -1,15 +1,21 @@
 package mx.csam.certificados.logic.write;
 
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.math.BigInteger;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.security.Security;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.security.spec.ECGenParameterSpec;
@@ -26,12 +32,14 @@ import java.util.List;
 import java.util.Map;
 
 import org.bouncycastle.asn1.ASN1Encodable;
+import org.bouncycastle.asn1.ASN1Encoding;
 import org.bouncycastle.asn1.ASN1Enumerated;
 import org.bouncycastle.asn1.ASN1GeneralizedTime;
 import org.bouncycastle.asn1.ASN1Integer;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.DERSequence;
 import org.bouncycastle.asn1.DERUTF8String;
+import org.bouncycastle.asn1.pkcs.EncryptedPrivateKeyInfo;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x509.Extension;
@@ -43,7 +51,6 @@ import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveGenParameterSpec;
-import org.bouncycastle.openssl.PKCS8Generator;
 import org.bouncycastle.openssl.jcajce.JcaPEMWriter;
 import org.bouncycastle.openssl.jcajce.JcaPKCS8Generator;
 import org.bouncycastle.openssl.jcajce.JceOpenSSLPKCS8EncryptorBuilder;
@@ -84,25 +91,28 @@ public class WriteCertificados {
 		boolean CerOrCsr, //Bandera para diferenciar entre Cer/CSR
 		
 		Object[] datosPKCifrado, //Datos para cifrar o no la PrivateKey		
+		String codif_archivo,//Ruta del archivo doonde se guardará el .cer/.key o .csr
 		Map<String, String[]> _SAN //Datos del Subjective Alternative Names ---> .csr
-		//String[] ruta,//Ruta del archivo doonde se guardará el .cer/.key o .csr
 		) 
 		throws Exception {
 
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
 		Security.addProvider(new BouncyCastleProvider());
 		
-		Object[] arr = generarCuerpoDeCertificadoOrCsr(algoritmo, titularDN, datosKPG);
+		Object[] arr = generarCuerpoDeCertificadoOrCsr(algoritmo
+				, titularDN, datosKPG);
 		
 		X500Name x500 = (X500Name) arr[0];
 		KeyPair keyPair = (KeyPair) arr[1];
 		ContentSigner firmador = (ContentSigner) arr[2];
+		String ALG_FIRMA = (String) arr[3];
 		
 		Object arch = null;//Recibira el .cer/.csr a escribir
 		String extension = "";
 		
-		//Objs. relac. a PrivateKey cifrada.
-		JcaPKCS8Generator pkCifrada = null;
+		//Objs. relacionados a PrivateKey cifrada.
+		//JcaPKCS8Generator pkCifrada = null;
+		PemObject pkCifrada = null;
 			// 0: Bandera si se cifra (true) o no(false)
 		boolean cifrado = Boolean.valueOf(datosPKCifrado[0].toString());
 				
@@ -129,29 +139,45 @@ public class WriteCertificados {
 				
 		long subfijo = System.currentTimeMillis();
 		
-		//*
-		escritorDeArchivos(arch, "certificado_"+subfijo, extension);
+		//---------------------------------------------------------------------------------------------
+		//ESCRITOR DE ARCHIVOS
+		
+		//Escritor del Certificado
+		escritorDeArchivos(arch, subfijo+"_certificado_"+algoritmo+"+"+ALG_FIRMA+"_"+extension, codif_archivo, cifrado);
+		
+		//Escritor de EncryptedPrivateKey
 		if(cifrado) {
-			escritorDeArchivos(pkCifrada, "PrivadaCifrada_"+subfijo, ".key");
+			
+			escritorDeArchivos(pkCifrada, subfijo+"_PrivadaCifrada_"+algoritmo+"+"+ALG_FIRMA+"_"+".key", codif_archivo, cifrado);
 			//Crear archivo de password
 			escritorDeArchivos(
 				passwordArchivoCifrado(
 					(String) datosPKCifrado[1],
 					(String) datosPKCifrado[2]
 				), 
-				"passPrivadaCifrado_"+subfijo, 
-				".txt"
+				subfijo+"_passPrivadaCifrado_"+algoritmo+"_"+".txt",
+				//codif_archivo+"_txt",
+				codif_archivo,
+				cifrado
 			);			
-		}else {
-			escritorDeArchivos(keyPair.getPrivate(), "Privada_"+subfijo, ".key");
 		}
-		escritorDeArchivos(keyPair.getPublic(), "publica_"+subfijo, ".der");
-		//*/
-		Object[] resultado = new Object[4];
-		resultado[0] = arch;//Object: el certificado en si
-		resultado[1] = extension;//String: la extension del archivo del certificado
-		resultado[2] = subfijo;//String: un nombre
-		resultado[3] = keyPair;//KeyPair: Llaves Privada y Publica
+		//Escritor de PrivateKey
+		else {
+			escritorDeArchivos(keyPair.getPrivate(), subfijo+"_Privada_"+algoritmo+"+"+ALG_FIRMA+"_"+".key", codif_archivo, cifrado);
+		}
+		
+		//Escritor de PublicKey
+		escritorDeArchivos(keyPair.getPublic(), subfijo+"_publica_"+algoritmo+"+"+ALG_FIRMA+"_"+".pubkey", codif_archivo, cifrado);
+		
+		//---------------------------------------------------------------------------------------------
+		//RETURN DEL METODO		
+		
+		Object[] resultado = new Object[5];
+		resultado[0] = arch;//Object: Certificado(.cer) / Certificate Signing Request o Solicitud de Firma de Certificado(.csr)
+		resultado[1] = keyPair;//KeyPair: Llaves Privada y Publica
+		resultado[2] = algoritmo;//String: Algoritmo ASIMETRICO del certificado
+		resultado[3] = ALG_FIRMA;//String: Algoritmo simetrico de la objeto Firmante (Firmador)
+		resultado[4] = (pkCifrada!= null) ? pkCifrada: null ;//PemObject: PrivateKey encriptada
 		
 		return resultado;
 	} 
@@ -193,7 +219,9 @@ public class WriteCertificados {
 		KeyPair keyPair = generaKeyPair(algoritmo, datosKPG);		
 		
 		//Cuando Firmas un certificado con X509v3CertificateBuilder, usas un ContentSigner. 
-		JcaContentSignerBuilder jcaContentSigner = generaJcaContentSigner(algoritmo, datosKPG);
+		//JcaContentSignerBuilder jcaContentSigner = generaJcaContentSigner(algoritmo, datosKPG);
+		Object[] arrJcaContentSigner = generaJcaContentSigner(algoritmo, datosKPG);
+		JcaContentSignerBuilder jcaContentSigner = (JcaContentSignerBuilder) arrJcaContentSigner[0];
 		ContentSigner firmador = jcaContentSigner.build(keyPair.getPrivate());
 		
 		/*
@@ -207,10 +235,11 @@ public class WriteCertificados {
 		);
 		 */
 		
-		Object[] arr =  new Object[3];
+		Object[] arr =  new Object[4];
 		arr[0] = x500;
 		arr[1] = keyPair;
 		arr[2] = firmador;
+		arr[3] = (String) arrJcaContentSigner[1]; //algoritmo de la firma
 		
 		return arr;
 	} 
@@ -754,7 +783,8 @@ public class WriteCertificados {
 	 * @throws IllegalArgumentException
 	 * @throws NoSuchProviderException
 	 * */	
-	public JcaContentSignerBuilder generaJcaContentSigner(String alg, String[] datosKPG) 
+	//public JcaContentSignerBuilder generaJcaContentSigner(String alg, String[] datosKPG) 
+	public Object[] generaJcaContentSigner(String alg, String[] datosKPG) 
 			throws NoSuchAlgorithmException, IllegalArgumentException, InvalidAlgorithmParameterException, NoSuchProviderException {
 		
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
@@ -1091,18 +1121,21 @@ public class WriteCertificados {
 			case String a when a.equals("GOST") -> {
 				//GOST -> "GOST3411withECGOST3410" (viejo) o "GOST3411-2012-256withECGOST3410-2012[-256/512]" (moderno)				
 				contentSigner = new JcaContentSignerBuilder(
-					CertificadosUtils.firmaEnGOST(tamSHA_o_genCurva, tamClaveBits_o_curvaInit)
+					//CertificadosUtils.firmaEnGOST(tamSHA_o_genCurva, tamClaveBits_o_curvaInit)
+					firma = CertificadosUtils.firmaEnGOST(tamSHA_o_genCurva, tamClaveBits_o_curvaInit)
 				);
 				yield contentSigner;
 			}
 			case String a when a.equals("Ed25519") -> {
 				//Ed25519 → "Ed25519" (sin prefijo SHA)
 				contentSigner = new JcaContentSignerBuilder(alg);
+				firma = alg;
 				yield contentSigner;
 			}
 			case String a when a.equals("Ed448") -> {
 				//Ed448 → "Ed448" (sin prefijo SHA)
 				contentSigner = new JcaContentSignerBuilder(alg);
+				firma = alg;
 				yield contentSigner;
 			}
 			default -> {
@@ -1117,9 +1150,13 @@ public class WriteCertificados {
 		//Se asigna el proveedor mediante un String
 		contentSigner = contentSigner.setProvider("BC");
 		
-		//Devuela el objeto de la firma creado a partir de la clave Privada
+		//Devuela el objeto de la firma creado a partir de la clave Privada		
+		Object[] arr = new Object[2];
+		arr[0] = contentSigner;
+		arr[1] = firma;
 		
-		return contentSigner;
+		//return contentSigner;
+		return arr;
 		
 	}
 	
@@ -1885,44 +1922,144 @@ public class WriteCertificados {
 	 * 
 	 * @param archivo El objeto lógico (es decir la info.) a escribir dentro del archivo
 	 * @param nomArch La ruta con el nombre del archivo a generar
-	 * @param extension El formato del archivo
+	 * @param codif_Arch El formato del archivo
 	 */
-	public void escritorDeArchivos(Object archivo, String nomArch, String extension) {
-		try(JcaPEMWriter writer = new JcaPEMWriter(new FileWriter(nomArch+extension)) ) {
-			/*Si es un objeto PEM usará JcaPEMWrite.writeObject() 
-			 * que esta estructurado para objetos PEM
-			 * 
-			 * Para usar JcaPEMWriter.writeObject() correctamente, 
-			 * se debe pasarle objetos criptográficos reconocidos por el 
-			 * proveedor BouncyCastle. 
-			 * 
-			 * Los más comunes son: 
-			 * 
-			 * - KeyPair o claves individuales como PrivateKey y PublicKey.
-			 * - Certificados digitales del formato X509Certificate.
-			 * - Solicitudes de firma de certificado (CSR)
-			 * 		(PKCS10CertificationRequest o ContentInfo).
-			 * - Instancias directas que implementen PemObjectGenerator.
-			 * 
-			 * 
-			 * Para un escribir un String plano se puede invocar 
-			 * directamente el método write(String), 
-			 * dado que JcaPEMWriter extiende indirectamente de 
-			 * java.io.Writer (4ta generación descendiente). 
-			 * 
-			 * La clase FilterWriter también extiende de java.io.Writer. 
-			 * 
-			 * */
-			if(extension.equalsIgnoreCase(".txt") 
-				|| extension.contains("txt")) {
-				writer.write((String) archivo);
-			}else {
+	public void escritorDeArchivos(Object archivo, String nomArch, String codifArch, boolean esEncriptado) {
+		
+		//Crea una carpeta Logica (la referencia) de: PEM/ o DER/
+		Path carpeta = null;
+		if(esEncriptado) {
+			carpeta = Paths.get(codifArch+"_enc");
+		}else {
+			carpeta = Paths.get(codifArch);
+		}
+		
+		//Crea la carpeta Fisica si no existe
+		try {
+			Files.createDirectories(carpeta);
+		} catch (IOException e) {
+			System.out.println("No se crearon los directorios contenedores");
+			e.printStackTrace();
+		}
+
+		/*Ruta completa del archivo
+		 * resolve() concadena las rutas con subrutas o archivos
+		 * */
+		Path rutaArch = carpeta.resolve(nomArch);
+		
+		try(//Objetos para PEM
+			//FileWriter fw = new FileWriter(nomArch);
+			//FileWriter fw = new FileWriter(codifArch+"+++"+nomArch);
+			FileWriter fw = new FileWriter(rutaArch.toFile());
+			JcaPEMWriter writer = new JcaPEMWriter(fw);
+			//Objeto para DER
+			//FileOutputStream fos = new FileOutputStream(codifArch+"+++"+nomArch);			
+			FileOutputStream fos = new FileOutputStream(rutaArch.toFile());			
+			) {
+			
+			if(codifArch.equalsIgnoreCase(CertificadosUtils.CODIF_ARCHIVO_PEM)) {	
+				
+				System.out.println("WriteCertificados.escritorDeArchivos() - archivo PEM\n");					
+				
+				/*Si es un objeto PEM usará JcaPEMWrite.writeObject() 
+				 * que esta estructurado para objetos PEM
+				 * 
+				 * Para usar JcaPEMWriter.writeObject() correctamente, 
+				 * se debe pasarle objetos criptográficos reconocidos por el 
+				 * proveedor BouncyCastle. 
+				 * 
+				 * Los más comunes son: 
+				 * 
+				 * - KeyPair o claves individuales como PrivateKey y PublicKey.
+				 * - Certificados digitales del formato X509Certificate.
+				 * - Solicitudes de firma de certificado (CSR)
+				 * 		(PKCS10CertificationRequest o ContentInfo).
+				 * - Instancias directas que implementen PemObjectGenerator.
+				 **/				
 				writer.writeObject(archivo);
+				writer.flush();
+				System.out.println("--- Se ha creado el archivo "+ nomArch +" ---");
+				//System.out.println("--- Archivo generado: " + nomArch+extension  + " ---");
+			}else if(codifArch.equalsIgnoreCase(CertificadosUtils.CODIF_ARCHIVO_DER)){
+				System.out.println("WriteCertificados.escritorDeArchivos() - archivo DER\n");							
+				
+				byte[] datos = null;
+				switch(archivo) {
+					case X509Certificate cer ->{
+						datos = cer.getEncoded();						
+						System.out.println("Algoritmo Cert: " + cer.getSigAlgName());
+						System.out.println("Formato/Tipo: " + cer.getType());
+					}
+					case PKCS10CertificationRequest csr ->{
+						datos = csr.getEncoded();
+					}
+					case PrivateKey pik ->{
+						datos = pik.getEncoded();
+						System.out.println("Algoritmo Priv: " + pik.getAlgorithm());
+						System.out.println("Formato: " + pik.getFormat());
+					}
+					case PublicKey puk ->{
+						datos = puk.getEncoded();
+						System.out.println("Algoritmo Pub: " + puk.getAlgorithm());
+						System.out.println("Formato: " + puk.getFormat());
+					}
+					//PARA LA ENCRYPTED_PRIVATE_KEY
+					/*En teoria es el correcto 
+					 * Pero puede pecar de ser ambiguo...
+					
+					Aunque se envia explicitamente un 
+					PemObject para la PK Cifrada
+					*/
+					case PemObject epik->{
+						datos = epik.getContent();
+						System.out.println("WriteCertificados.escritorDeArchivos()\n"
+								+ " - Codificacion: DER -> EncryptedPrivateKey -> PEMObject");
+						System.out.println("Tipo: " + epik.getType());
+					}
+					//Este es el teorico real de la EncryptedPrivateKey
+					case EncryptedPrivateKeyInfo epik->{
+						datos = epik.getEncoded(ASN1Encoding.DER);
+						System.out.println("WriteCertificados.escritorDeArchivos()\n"
+								+ " - Codificacion: DER -> EncryptedPrivateKey -> EncryptedPrivateKeyInfo");						
+					}
+					//Originalmente devolvia esto pero requiere modificar más
+					case JcaPKCS8Generator epik->{
+						datos = epik.generate().getContent();
+						System.out.println("WriteCertificados.escritorDeArchivos()\n"
+								+ " - Codificacion: DER -> EncryptedPrivateKey -> JcaPKCS8Generator");
+					}
+					default -> {
+						/*PemObject pem = (PemObject) archivo;
+						fos.write(pem.getContent());*/
+						
+						throw new IllegalArgumentException("No es un objeto DER");
+					}
+				}
+				
+				//LOGS sobre el archivo
+				System.out.println("Bytes: " + (datos == null ? "null" : datos.length));
+				
+				//Escribe los bytes en el archivo
+				fos.write(datos);
+				//Libera los bytes de memoria retenida y fuerza a su escritura
+				fos.flush();
+			
+			}else {
+				 /* Para escribir un String plano se puede invocar 
+				 * directamente el método JcaPEMWriter.write(String), 
+				 * dado que JcaPEMWriter extiende indirectamente de 
+				 * java.io.Writer (4ta generación descendiente). 
+				 * 
+				 * La clase FileWriter también extiende de java.io.Writer. 
+				 **/
+				writer.write((String) archivo);
+				writer.flush();
 			}
-			System.out.println("--- Se ha creado el archivo "+ extension +" ---");
-			System.out.println("--- Archivo generado: " + nomArch+extension  + " ---");
 		} catch (IOException e) {
 			System.out.println("Excepcion generada:\n");
+			e.printStackTrace();
+		} catch (CertificateEncodingException e) {
+			System.out.println("Excepción relacionada con el Certificado:\n");
 			e.printStackTrace();
 		}
 	}
@@ -1941,7 +2078,8 @@ public class WriteCertificados {
 	 * @throws OperatorCreationException
 	 * @throws PemGenerationException
 	 */
-	private JcaPKCS8Generator cifrarPrivateKey(PrivateKey pKey, String algCifradoPK, String pass) 
+	//private JcaPKCS8Generator cifrarPrivateKey(PrivateKey pKey, String algCifradoPK, String pass) 
+	private PemObject cifrarPrivateKey(PrivateKey pKey, String algCifradoPK, String pass) 
 		throws OperatorCreationException, PemGenerationException {
 		
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
@@ -1975,8 +2113,9 @@ public class WriteCertificados {
 		JcaPKCS8Generator pkcs8Cifrado =
 				new JcaPKCS8Generator(pKey, outputEncryptor);
 		
-		
-		return pkcs8Cifrado;
+		//return pkcs8Cifrado;
+		PemObject pem = pkcs8Cifrado.generate();
+		return pem;
 	}
 
 	private String passwordArchivoCifrado(String algoritmo, String pass) {

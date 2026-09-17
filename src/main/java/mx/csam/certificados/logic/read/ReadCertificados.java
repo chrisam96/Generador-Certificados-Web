@@ -54,8 +54,13 @@ public class ReadCertificados {
 	
 	public ArrayList<Object> leerArchivos(
 		String certiRuta, String privKRuta, String pubKRuta, @Nullable String passPK)
-		throws IllegalArgumentException, OperatorCreationException, IOException, PKCSException
+		throws IllegalArgumentException, OperatorCreationException, IOException, 
+		PKCSException, CertificateException, NoSuchProviderException
 	{	
+		
+		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
+		Security.addProvider(new BouncyCastleProvider());	
+		
 		// LECTURA DE ARCHIVOS
 		
 		//Lista de objetos recuperados del Certificados
@@ -82,16 +87,9 @@ public class ReadCertificados {
 		 * //10: PrivateKey
 		 * //11: PublicKey 
 		 * */
-		try {
-			listaCert = leerCertificado(certiRuta);
-			certi = (X509Certificate)(listaCert.get(0));
-		} catch (CertificateException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (NoSuchProviderException e) {
-			e.printStackTrace();
-		}
+		
+		listaCert = leerCertificado(certiRuta);
+		certi = (X509Certificate)(listaCert.get(0));
 		
 		
 		/**
@@ -112,13 +110,8 @@ public class ReadCertificados {
 		PrivateKey privk = leerPrivateKey(privKRuta, passPK);
 		
 		//Lee la Public Key
-		PublicKey pubk = null;
-		try {
-			pubk = leerPublicKey(pubKRuta);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
+		PublicKey pubk = null;		
+		pubk = leerPublicKey(pubKRuta);
 		
 		// PRUEBAS CRIPTOGRAFICAS
 		
@@ -138,7 +131,7 @@ public class ReadCertificados {
 		
 		//Verificar q' PrivateKey corresponde a la PublicKey externa		
 		if(!validarParDeKeys(privk, pubk, (String)listaCert.get(1) ) ) {
-			throw new IllegalArgumentException("Fechas del certificado ya no son validas");
+			throw new IllegalArgumentException("Las keys no corresponden entre sí");
 		}
 		
 			//Saca la PublicKey del Certificado
@@ -146,12 +139,12 @@ public class ReadCertificados {
 		
 		//Verificar q' PrivateKey corresponde a la PublicKey Certificado
 		if(!validarParDeKeys(privk, pubKCerti, (String)listaCert.get(1) ) ) {
-			throw new IllegalArgumentException("Fechas del certificado ya no son validas");
+			throw new IllegalArgumentException("Las keys (del certificado) y private no corresponden entre sí");
 		}
 		
 		//Validar criptograficamente la firma del Certificado con la PublicKey externa 
 		if(!validarFirmaDelCertificado(certi, pubk) ) {
-			throw new IllegalArgumentException("Fechas del certificado ya no son validas");
+			throw new IllegalArgumentException("La firma del certificado  es diferente a la representada con la PublicKey externa");
 		}
 		
 		listaCert.add(privk);
@@ -176,10 +169,11 @@ public class ReadCertificados {
 	 * 5: Sujeto Emisor del Certificado - (javax.security.auth.x500.X500Principal)
 	 * 6: Fecha de Inicio de Validez - (Date)
 	 * 7: Fecha de Fin de Vigencia - (Date)
+	 * 8: Tipo de Certificado - (String)
 	 * </pre>
 	 * 
 	 * @param certiRuta Ruta donde se encuentra el Certificado
-	 * @return
+	 * @return {@code ArrayList<Object>}
 	 * @throws IOException
 	 * @throws CertificateException
 	 * @throws NoSuchProviderException 
@@ -199,8 +193,7 @@ public class ReadCertificados {
 			
 			//Se crea un obj Factory para  poder abstraer el certificado digital
 			CertificateFactory cf = CertificateFactory.getInstance("X.509", "BC");
-			
-			
+						
 			//Se extrae/genera el (X.509) Certificado
 			X509Certificate cert = (X509Certificate) cf.generateCertificate(is);
 			
@@ -232,6 +225,7 @@ public class ReadCertificados {
 		    );
 			
 			System.out.println("""
+				\n\n
 				========= ReadCertificados.leerCertificado =========
 				
 				====================================================
@@ -248,7 +242,7 @@ public class ReadCertificados {
 			resul.add(cert.getPublicKey());
 			//4: Algoritmo de Public Key (String)
 			resul.add(cert.getPublicKey().getAlgorithm()); 
-	    	//5: Sujeto Dueño del Certificado (javax.security.auth.x500.X500Principal)
+	    	//5: Sujeto Dueño del Certificado ( javax.security.auth.x500.X500Principal)
 			resul.add(cert.getSubjectX500Principal());
 			//6: Sujeto Emisor del Certificado (javax.security.auth.x500.X500Principal)
 			resul.add(cert.getIssuerX500Principal());
@@ -256,7 +250,7 @@ public class ReadCertificados {
 	    	resul.add(cert.getNotBefore()); 
 	    	//8: Fecha de Fin de Vigencia (Date)
 	    	resul.add(cert.getNotAfter());
-	    	//9: Tipo
+	    	//9: Tipo (String)
 	    	resul.add(cert.getType());
 	    	
 	    	return resul;
@@ -423,20 +417,7 @@ public class ReadCertificados {
 		
 		
 		PrivateKey pk = null;
-		
-		/**
-		 * Por Hacer:
-		 * OK-Determinar si una PublicKey -> Lanzar excepcion  
-		 * OK-Determinar si esta Cifrada o No Cifrada
-		 * OK-Si es un EncryptedPK (Cifrada)
-		 * 	 OK-> enviar a descifrarPrivateKeyPEM
-		 * 	 OK-> enviar a descifrarPrivateKeyDER
-		 * OK-Si es un PrivateKey (No Cifrada)
-		 * 	 OK-> enviar a leerPrivateKeyPEM
-		 * 	 OK-> enviar a leerPrivateKeyDER
-		 *
-		 */
-		
+
 		Boolean[] analisis = determinaPEMoDER_y_encriptadoPKCS8(privKRuta);
 		
 		 /* De acuerdo al analisis devuelve el siguiente vector
@@ -852,7 +833,7 @@ public class ReadCertificados {
 								((EncryptedPrivateKeyInfo) obj).getClass());						
 					}
 					
-					//Es EncryptedPrivateKey -> 1: false
+					//Es EncryptedPrivateKey, por lo tanto -> 1: false
 					res[1] = false;
 					//2: Cifrada(true) o No Cifrada(false)
 					res[2] = true;

@@ -194,7 +194,7 @@ public final class CertificadosUtils {
 			public static final String[] Brainpool_mas_usados= {
 				"brainpoolP256r1",
 				"brainpoolP384r1",
-				"brainpoolP512r1"
+				"brainpoolP512r1"				
 			};
 		};
 		
@@ -786,7 +786,7 @@ public final class CertificadosUtils {
 			}
 		}
 		
-		System.out.println("string quedo:'"+ curvaInit +"'");
+		System.out.println("CertificadosUtils.firmaEnEC().string quedo:'"+ curvaInit +"'");
 		
 		/*
 		secp 		112 128 160 192 224 256 384 521
@@ -815,12 +815,12 @@ public final class CertificadosUtils {
 				yield "SHA384"; 
 				
 			}
-			//No existe el 512
-			case "521", "571" -> {
+			case "512", "521", "571" -> {
 				yield "SHA512"; 
 				
 			}
 			default -> {
+				System.out.println("CertificadosUtils.firmaEnEC()\nNo se determino una firma");
 				yield "SHA256";
 			}
 		};
@@ -831,24 +831,33 @@ public final class CertificadosUtils {
 	
 	// --------------------------------------------------------------------
 	// PARAMETROS DEL ARCHIVO CREADO
+
+	public static String[] lista_codif_archivo = {"PEM", "DER"};
+	public static String CODIF_ARCHIVO_PEM = "PEM";
+	public static String CODIF_ARCHIVO_DER = "DER";
 	
 	//Bandera de Encryptado
 	@Deprecated
-	public static boolean es_encryptado = false;
+	public static boolean es_encryptado = false;	
 	
+	@Deprecated
 	//Extension de Certificado
 	public static String [] formato_extension_certificado = {".cer", ".crt", ".der", ".pem"}; 
 	
+	@Deprecated
 	//Extension de Llave Privada
 	public static String [] formato_extension_PrivateKey = {".key", ".der", ".pem"};
 	
+	@Deprecated
 	//Extension de Llave Pública -->> ¿Esto lo agrego Codeium?
 	public static String [] formato_extension_publicKey = {".crt", ".der", ".pem"};
 	
 	//Extension de Almacen de LLaves
+	@Deprecated
 	public static String [] formato_extension_KeyStore = {".jks", ".p12", ".pfx" };
 	
 	//Extension de Solicitud de Certificado (CSR)
+	@Deprecated
 	public static String [] formato_extension_CSR = {".csr"};
 	
 	// --------------------------------------------------------------------
@@ -893,8 +902,10 @@ public final class CertificadosUtils {
 	// --------------------------------------------------------------------
 	// ALGORITMOS SIMETRICOS PARA ENCRIPTAR PRIVATE_KEY (PKCS#8)	
 	
-	/***
-	 * 
+	/**
+	 * Devuelve una lista de tipo {@code String[]}
+	 * organizado por la generación del esquema
+	 * @return {@link String}[]
 	 */
 	public static String [] algoritmo_simetrico = {
 		/* --------------------------------------
@@ -984,7 +995,7 @@ public final class CertificadosUtils {
 				"PBE_SHA1_RC4_128", "PBE_SHA1_RC4_40" };
 		
 		lista.put("AES", aes);
-		lista.put("PBE", des3);
+		lista.put("3DES", des3);
 		//lista.put("SM4", familiaSM4);
 		lista.put("PBE", pbe);
 		

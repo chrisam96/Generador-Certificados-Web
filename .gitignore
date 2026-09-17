@@ -12,6 +12,11 @@ HELP.md
 /target/surefire-reports/
 /target/*.jar.original
 /Certificados/
+/basura/
+/PEM/
+/DER/
+/PEM_enc/
+/DER_enc/
 #.gitattributes
 
 ### STS/Eclipse IDE ###
