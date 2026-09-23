@@ -143,19 +143,19 @@ public class WriteCertificados {
 		//ESCRITOR DE ARCHIVOS
 		
 		//Escritor del Certificado
-		escritorDeArchivos(arch, subfijo+"_certificado_"+algoritmo+"+"+ALG_FIRMA+"_"+extension, codif_archivo, cifrado);
+		escritorDeArchivos(arch, subfijo+"_certificado_"+algoritmo+"+"+ALG_FIRMA + extension, codif_archivo, cifrado);
 		
 		//Escritor de EncryptedPrivateKey
 		if(cifrado) {
 			
-			escritorDeArchivos(pkCifrada, subfijo+"_PrivadaCifrada_"+algoritmo+"+"+ALG_FIRMA+"_"+".key", codif_archivo, cifrado);
+			escritorDeArchivos(pkCifrada, subfijo+"_PrivadaCifrada_"+algoritmo+"+"+ALG_FIRMA + ".key", codif_archivo, cifrado);
 			//Crear archivo de password
 			escritorDeArchivos(
 				passwordArchivoCifrado(
 					(String) datosPKCifrado[1],
 					(String) datosPKCifrado[2]
 				), 
-				subfijo+"_passPrivadaCifrado_"+algoritmo+"_"+".txt",
+				subfijo+"_passPrivadaCifrado_"+algoritmo+"+"+ALG_FIRMA + ".txt",
 				//codif_archivo+"_txt",
 				codif_archivo,
 				cifrado
@@ -163,11 +163,11 @@ public class WriteCertificados {
 		}
 		//Escritor de PrivateKey
 		else {
-			escritorDeArchivos(keyPair.getPrivate(), subfijo+"_Privada_"+algoritmo+"+"+ALG_FIRMA+"_"+".key", codif_archivo, cifrado);
+			escritorDeArchivos(keyPair.getPrivate(), subfijo+"_Privada_"+algoritmo+"+"+ALG_FIRMA + ".key", codif_archivo, cifrado);
 		}
 		
 		//Escritor de PublicKey
-		escritorDeArchivos(keyPair.getPublic(), subfijo+"_publica_"+algoritmo+"+"+ALG_FIRMA+"_"+".pubkey", codif_archivo, cifrado);
+		escritorDeArchivos(keyPair.getPublic(), subfijo+"_publica_"+algoritmo+"+"+ALG_FIRMA + ".pubkey", codif_archivo, cifrado);
 		
 		//---------------------------------------------------------------------------------------------
 		//RETURN DEL METODO		
@@ -1603,11 +1603,11 @@ public class WriteCertificados {
 		}
 		
 		//Fecha de Inicio de Vigencia
-		Date ahora = null;
+		Date inicioVig = null;
 		if (vig_y_serial[1] != null) {
-			ahora = crearFechaInicioValidez(vig_y_serial[1] );
+			inicioVig = crearFechaInicioValidez(vig_y_serial[1] );
 		}else {
-			ahora = crearFechaInicioValidez(null);			
+			inicioVig = crearFechaInicioValidez(null);			
 		}
 		
 		//Fecha de Fin de Validez 
@@ -1616,15 +1616,15 @@ public class WriteCertificados {
 		//Date vigencia = new Date(System.currentTimeMillis() + (365L*24L*60L*60L*1000L));
 		Date vigencia = null;
 		if (vig_y_serial[2] != null) {
-			vigencia = crearFechaFinVigencia(vig_y_serial[2], ahora );
+			vigencia = crearFechaFinVigencia(vig_y_serial[2], inicioVig );
 		}else {
-			vigencia = crearFechaFinVigencia(null, ahora);			
+			vigencia = crearFechaFinVigencia(null, inicioVig);			
 		}
 		
 		JcaX509v3CertificateBuilder certBuilder = new JcaX509v3CertificateBuilder(
 			emisorX500, 		// X500Name: Emisor o Quién firma el Certificado 
 			serial, 			// BigInteger: No. Serial
-			ahora, 			// Date: notBefore, Inicio de la vigencia/validez
+			inicioVig, 			// Date: notBefore, Inicio de la vigencia/validez
 			vigencia, 		// Date: notAfter, Fecha de fin de validez 
 			titularX500, 	// X500Name: Titular del Certificado 
 			keyPair.getPublic() //Llave Pública
@@ -1975,8 +1975,20 @@ public class WriteCertificados {
 				 * - Solicitudes de firma de certificado (CSR)
 				 * 		(PKCS10CertificationRequest o ContentInfo).
 				 * - Instancias directas que implementen PemObjectGenerator.
+				 **/
+				if( !nomArch.endsWith(".txt") ) {
+					writer.writeObject(archivo);
+				}
+				 /* Para escribir un String plano se puede invocar 
+				 * directamente el método JcaPEMWriter.write(String), 
+				 * dado que JcaPEMWriter extiende indirectamente de 
+				 * java.io.Writer (4ta generación descendiente). 
+				 * 
+				 * La clase FileWriter también extiende de java.io.Writer. 
 				 **/				
-				writer.writeObject(archivo);
+				else {
+					writer.write((String) archivo);					
+				}
 				writer.flush();
 				System.out.println("--- Se ha creado el archivo "+ nomArch +" ---");
 				//System.out.println("--- Archivo generado: " + nomArch+extension  + " ---");
@@ -2027,6 +2039,10 @@ public class WriteCertificados {
 						datos = epik.generate().getContent();
 						System.out.println("WriteCertificados.escritorDeArchivos()\n"
 								+ " - Codificacion: DER -> EncryptedPrivateKey -> JcaPKCS8Generator");
+					}
+					case String s -> {
+						datos = s.getBytes();
+						System.out.println("Pass info:" + s);
 					}
 					default -> {
 						/*PemObject pem = (PemObject) archivo;

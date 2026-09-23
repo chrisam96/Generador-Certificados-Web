@@ -896,10 +896,11 @@ class WriteCertificadosTest {
 		
 		//--------------------------------------------------------------------------------------------
 		// FECHAS_VIGENCIA_Y_No._SERIAL >>> fecha_vig_y_serial
-		String[] vigSerial1 = {"SERIAL", "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};
-		String[] vigSerial2 = {"1", "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};
-		String[] vigSerial3 = {null, "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};							
-
+		ArrayList<String[]> listaVigSerial = listaFechasParaCertificados();
+		
+		String[] vigSerial1 = listaVigSerial.get(0);
+		String[] vigSerial2 = listaVigSerial.get(1);
+		String[] vigSerial3 = listaVigSerial.get(2);
 		//--------------------------------------------------------------------------------------------
 		//DATOS_KPG >>> datosKPG
 		
@@ -1162,10 +1163,11 @@ class WriteCertificadosTest {
 		
 		//--------------------------------------------------------------------------------------------
 		// FECHAS_VIGENCIA_Y_No._SERIAL >>> fecha_vig_y_serial
-		String[] vigSerial1 = {"SERIAL", "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};
-		String[] vigSerial2 = {"1", "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};
-		String[] vigSerial3 = {null, "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};							
+		ArrayList<String[]> listaVigSerial = listaFechasParaCertificados();
 		
+		String[] vigSerial1 = listaVigSerial.get(0);
+		String[] vigSerial2 = listaVigSerial.get(1);
+		String[] vigSerial3 = listaVigSerial.get(2);
 		//--------------------------------------------------------------------------------------------
 		//DATOS_KPG >>> datosKPG
 		
@@ -1335,7 +1337,7 @@ class WriteCertificadosTest {
 	@Test
 	//@ParameterizedTest
 	//@MethodSource("datos_generarKeyPair_EC")
-	@Disabled
+	//@Disabled
 	@Order(11)
 	@DisplayName("Validar generarCertificadoOrCsr() - codif: PEM + CON-EncryptedPrivateKey")	
 	void test11() throws Exception {
@@ -1428,10 +1430,11 @@ class WriteCertificadosTest {
 		
 		//--------------------------------------------------------------------------------------------
 		// FECHAS_VIGENCIA_Y_No._SERIAL >>> fecha_vig_y_serial
-		String[] vigSerial1 = {"SERIAL", "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};
-		String[] vigSerial2 = {"1", "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};
-		String[] vigSerial3 = {null, "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};							
-	
+		ArrayList<String[]> listaVigSerial = listaFechasParaCertificados();
+		
+		String[] vigSerial1 = listaVigSerial.get(0);
+		String[] vigSerial2 = listaVigSerial.get(1);
+		String[] vigSerial3 = listaVigSerial.get(2);	
 		//--------------------------------------------------------------------------------------------
 		//DATOS_KPG >>> datosKPG
 		
@@ -1623,7 +1626,7 @@ class WriteCertificadosTest {
 	@Test
 	//@ParameterizedTest
 	//@MethodSource("datos_generarKeyPair_EC")
-	@Disabled
+	//@Disabled
 	@Order(12)
 	@DisplayName("Validar generarCertificadoOrCsr() - codif: DER + CON-EncryptedPrivateKey")	
 	void test12() throws Exception {
@@ -1716,9 +1719,11 @@ class WriteCertificadosTest {
 		
 		//--------------------------------------------------------------------------------------------
 		// FECHAS_VIGENCIA_Y_No._SERIAL >>> fecha_vig_y_serial
-		String[] vigSerial1 = {"SERIAL", "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};
-		String[] vigSerial2 = {"1", "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};
-		String[] vigSerial3 = {null, "2020-07-01T12:00:00+02:00", "0_0_0_1_0_0_"};							
+		ArrayList<String[]> listaVigSerial = listaFechasParaCertificados();
+		
+		String[] vigSerial1 = listaVigSerial.get(0);
+		String[] vigSerial2 = listaVigSerial.get(1);
+		String[] vigSerial3 = listaVigSerial.get(2);							
 		
 		//--------------------------------------------------------------------------------------------
 		//DATOS_KPG >>> datosKPG
@@ -1905,6 +1910,16 @@ class WriteCertificadosTest {
 		}
 		
 		
+	}
+	
+	private ArrayList<String[]> listaFechasParaCertificados() {
+		ArrayList<String[]> lista = new ArrayList<String[]>();
+		// FECHAS_VIGENCIA_Y_No._SERIAL >>> fecha_vig_y_serial
+		lista.add(new String[]{"SERIAL", "2020-07-01T12:00:00+02:00", "7_0_0_1_0_0_"});
+		lista.add(new String[]{"1", "2020-07-01T12:00:00+02:00", "7_0_0_1_0_0_"});
+		lista.add(new String[]{null, "2020-07-01T12:00:00+02:00", "7_0_0_1_0_0_"});
+		
+		return lista;
 	}
 	
 
