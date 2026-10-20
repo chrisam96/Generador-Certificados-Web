@@ -856,9 +856,11 @@ public final class CertificadosUtils {
 	@Deprecated
 	public static String [] formato_extension_KeyStore = {".jks", ".p12", ".pfx" };
 	
-	//Extension de Solicitud de Certificado (CSR)
+	//Extension de Solicitud de Firma de Certificado (CSR)
 	@Deprecated
 	public static String [] formato_extension_CSR = {".csr"};
+	
+	public static String [] formato_tipo_certificado = {"Certificado (.cer)", "Solicitud de Firma de Certificado (.csr)"};
 	
 	// --------------------------------------------------------------------
 	// VALORES DEL SANs	

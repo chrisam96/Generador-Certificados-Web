@@ -206,7 +206,7 @@ public class WriteCertificados {
 		
 		//Se asignan los datos
 		// CN = Nombre del Titular			
-		// O = Organizacion+
+		// O = Organizacion
 		// OU = Unidad Organizacional o subdivision de la organizacion
 		// L = Ciudad o Localidad
 		// ST = Estado o Provincia
