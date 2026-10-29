@@ -6,13 +6,13 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Rectangle;
-import java.awt.Window.Type;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
 
 import javax.swing.Box;
 import javax.swing.JButton;
-import javax.swing.JDialog;
+import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -23,6 +23,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 import mx.csam.certificados.utilerias.records.CertificadoWriteGUIRecord;
 
@@ -55,15 +56,22 @@ public class Main extends JFrame {
 	private JButton btnEscritura;
 	
 	private JLabel lblCargarCer = new JLabel("");
-	private JButton btnCargarCer = new JButton("");
-	private final JTextField txtCargarCer = new JTextField("");
-	private JButton btnCargarPubk = new JButton("");
+	public JButton btnCargarCer = new JButton("");
+	public final JTextField txtCargarCer = new JTextField("");
+	
 	private JLabel lblCargarPubk = new JLabel("");
-	private final JTextField txtCargarPubk = new JTextField("");
+	public JButton btnCargarPubk = new JButton("");
+	public final JTextField txtCargarPubk = new JTextField("");
+	
 	private JLabel lblCargarPrik = new JLabel("");	
-	private JButton btnCargarPrik = new JButton("");
-	private final JTextField txtCargarPrik = new JTextField("");
-	private JButton btnAnalizar = new JButton("");	
+	public JButton btnCargarPrik = new JButton("");
+	public final JTextField txtCargarPrik = new JTextField("");
+	
+	public JButton btnAnalizar = new JButton("");	
+	
+	public File arch_cert = null;
+	public File arch_prik = null;
+	public File arch_pubk = null;	
 	
 	/*
 	 * JFrame: 600x400
@@ -77,39 +85,80 @@ public class Main extends JFrame {
 	 */	
 	
 	//TAMAÑOS
+	///DIMENSIONES
 	//JFrame
-	static int wJFrame = 900;
+	static int wJFrame = 1150;
 	static int hJFrame = 700;
 	
 	//Content Pane
-	int wContentPane = 886;
-	int hContentPane = 663;
+	private int wContentPane = 1136;
+	private int hContentPane = 663;
+
+	private int ancTxtArea = 640;
+	private int altTxtArea = 440;
 	
+	private int ancPanelLectura = 1350;
+	private int altPanelLectura = 700;
+		
+	private int ancLblPanelLectura = 140;
+	private int ancTxtPanelLectura = 650;
+	
+	private int posY_LblPanelLectura = 0;
 	//Bordes JFrame
+	
 	/*
 	final int bordes = 7;
 	final int bordeSup = 30;
 	final int hJMenuBar = 23;
 	final int h_Scroll_Hor = 23;
-	*/
-		
+	*/	
 	
 	//Posiciones de los bordes
-	final int pos_bordeIzq = 0;
-	final int pos_bordeSup = 0;
+	final int posInitIzq = 0;
+	final int posInitSup = 0;
 	
 	//ScrollEscritura
-	int wScrollEsc = wContentPane;
-	int hScrollEsc = 120;
+	//int ancScrollEsc = wContentPane;
+	int altScrollEsc = 160;
 
 	//Separador
 	final int separador = 10;
 	
 	//ScrollLectura
-	int wScrollLec = wContentPane;
-	int hScrollLec = hContentPane - hScrollEsc - separador ;
-	int pos_hScrollLec = hContentPane - hScrollLec;		
-
+	//int ancScrollLec = wContentPane;
+	int altScrollLec = hContentPane - altScrollEsc - separador ;
+	int posY_hScrollLec = hContentPane - altScrollLec;		
+	
+	//TAMAÑOS AUXILIARES
+	private int altTxt = 25; 
+	private int altLbl = 20; 
+	private int altCob = 20; 
+	private int altChb = 20;
+	private int altBtn = 25;
+	
+	private int altGenInit = 30; 
+	private int ancGenInit = 10; 
+	
+	private int spaceVer = 10; 
+	private int spaceHor = 25;
+	
+	private int tamAncTex = -1;
+	private int tamAltoTex = -1;
+	
+	//FUENTES
+	Font fteTitulos = new Font(Font.MONOSPACED, Font.BOLD, 20);
+	Font fteTextos = new Font(Font.DIALOG, Font.PLAIN, 15);
+	
+	Font fteDialog = new Font(Font.DIALOG, Font.BOLD, 15);
+	//Font fteDialogInput = new Font(Font.DIALOG_INPUT, Font.BOLD, 15); //Identico a MONOSPACED
+	//Font fteSANSERIF = new Font(Font.SANS_SERIF, Font.BOLD, 15); // Identico a DIALOG
+	Font fteSERIF = new Font(Font.SERIF, Font.BOLD, 15);
+	Font fteMONOSPACED = new Font(Font.MONOSPACED, Font.BOLD, 15);
+	
+	Color colTitulos = Color.BLACK;
+	Color colTxt = Color.BLACK;
+	Color colAux = Color.GRAY;
+	
 	
 	static {
 		
@@ -142,13 +191,13 @@ public class Main extends JFrame {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		
 		//DATOS DE JFRAME
 		ven =  new JFrame();
 		ven.setName("ven");
+		ven.setType(Type.POPUP);
 		ven.setBounds(new Rectangle(100, 100, wJFrame, hJFrame));
 		System.out.println(" PRIMERO DE TODOS\n"+ven.getBounds() + "\n\n\n");
-		ven.setType(Type.POPUP);
-		//ven.setBounds(new Rectangle(100, 100, wJFrame, hJFrame));
 		//Forzar la visualización (para obtener las medidas del ContentPane)
 		ven.setVisible(true);
 		ven.addNotify();
@@ -160,7 +209,12 @@ public class Main extends JFrame {
 		ven.getContentPane().setLayout(null);
 		//Aparecer en el Centro 
 		ven.setLocationRelativeTo(null);		
+
+		//Gestor de eventos
+		Eventos eventos = new Eventos(this);
 		
+		Rectangle rVen = ven.getContentPane().getBounds();
+		System.err.println("Rectangle JDialog " + rVen);
 		
 		/*NOTAS:
 		 * >> Contenedores internos de los componentes:
@@ -212,10 +266,12 @@ public class Main extends JFrame {
 		scrollEscritura.setName("scrollEscritura");		
 		scrollEscritura.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 		scrollEscritura.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		//scrollEscritura.setAutoscrolls(false);
-		scrollEscritura.setBounds(pos_bordeIzq, pos_bordeSup, wScrollEsc, hScrollEsc);
-		scrollEscritura.setViewportBorder(new TitledBorder(null, "Escritura", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		/*Corresponde a cuando se arrastra un elemento dentro de un contenedor
+		 * y la pantalla se mueve con esa acción*/ 
+		//scrollEscritura.setAutoscrolls(false); 
+		scrollEscritura.setViewportBorder(new TitledBorder(null, "Escritura", TitledBorder.LEADING, TitledBorder.TOP, fteTitulos, colTitulos));
 		scrollEscritura.setViewportView(panelEscritura);		
+		scrollEscritura.setBounds(posInitIzq, posInitSup, rVen.width, altScrollEsc);
 		
 		//>> MEDIDAS DE LOS CONTENEDORES INTERNOS DEL JSCROLLPANE (scrollEscritura) 
 		
@@ -226,22 +282,29 @@ public class Main extends JFrame {
 		// AHORA sí: obtener el espacio real del viewport
 		Dimension d = scrollEscritura.getViewport().getExtentSize();
 		System.out.println("Viewport: " + d);
+		
 		//Se llena todo el espacio interno de JScrollPane con el JPanel
-		panelEscritura.setBounds(0, 0, d.width, d.height);
 		panelNomsArchivos.setBounds(
-			0, 0, 
-			(int) (d.width * (4.0/5.0)), 
-			//(int) (d.height * (2.0/3.0))
+			0, 
+			0, 
+			(int) (d.width * (4.0/5.0)),			
 			(int) (d.height)
 		);
+		panelEscritura.setBounds(0, 0, d.width, d.height);
 		
 		//-----------------------------------------------------------------
 		//ETIQUETAS
-		lblPanelNomArchivos.setBounds(10, 5, 640, 16);
+		lblPanelNomArchivos.setName("lblPanelNomArchivos");
 		lblPanelNomArchivos.setText("Oprima el botón \"Generar\" y rellene el formulario para crear el Certificado .cer y las keys correspondientes");
+		lblPanelNomArchivos.setFont(fteTextos);
 		lblPanelNomArchivos.setForeground(Color.BLACK);
+		tamAncTex = getTamanioAncho(lblPanelNomArchivos);
+		tamAncTex = getTamanioAnchoTexto(lblPanelNomArchivos);
+		lblPanelNomArchivos.setBounds(10, 5, tamAncTex + spaceHor, altLbl);
+		System.out.println(lblPanelNomArchivos.getBounds());
+		System.out.println(panelNomsArchivos.getBounds());
+		System.out.println(panelEscritura.getBounds());
 		
-		txtCerti.setBounds(10, 35, 640, 16);
 		txtCerti.setText("certificado.cer");
 		txtCerti.setForeground(Color.GRAY);
 		txtCerti.setEnabled(true);
@@ -249,8 +312,9 @@ public class Main extends JFrame {
 		txtCerti.setBorder(null); // Quita el borde de caja de texto
 		txtCerti.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCerti.setFocusable(true);// Permite que el usuario haga clic para seleccionar
-		
-		txtPubK.setBounds(10, 55, 640, 16);
+		txtCerti.setFont(fteTextos);
+		txtCerti.setBounds(10, 35, tamAncTex + spaceHor, altLbl);
+				
 		txtPubK.setText("public_key.pubkey");		
 		txtPubK.setForeground(Color.GRAY);
 		txtPubK.setEnabled(true);
@@ -258,8 +322,9 @@ public class Main extends JFrame {
 		txtPubK.setBorder(null); // Quita el borde de caja de texto
 		txtPubK.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtPubK.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtPubK.setFont(fteTextos);
+		txtPubK.setBounds(10, txtCerti.getBounds().y + spaceVer + altLbl, tamAncTex + spaceHor, altLbl);
 		
-		txtPriK.setBounds(10, 75, 640, 16);
 		txtPriK.setText("private_key.key");		
 		txtPriK.setForeground(Color.GRAY);
 		txtPriK.setEnabled(true);
@@ -267,9 +332,13 @@ public class Main extends JFrame {
 		txtPriK.setBorder(null); // Quita el borde de caja de texto
 		txtPriK.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtPriK.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtPriK.setFont(fteTextos);
+		txtPriK.setBounds(10, txtPubK.getBounds().y + spaceVer + altLbl, tamAncTex + spaceHor, altLbl);
 		
 		//-----------------------------------------------------------------
 		//JBUTTON Escritura
+		tamAncTex = getPosicionAncho(panelNomsArchivos); 
+		
 		btnEscritura = new JButton("Generar");
 		btnEscritura.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
@@ -280,8 +349,9 @@ public class Main extends JFrame {
 				System.out.println("**** DESPUES DE SET_VISIBLE()");
 			}
 		});
-		btnEscritura.setBounds(742, 10, 84, 20);
 		btnEscritura.setName("btnGenerar");
+		btnEscritura.setFont(fteTextos);
+		btnEscritura.setBounds(920, altGenInit, 120, altBtn);
 				
 		panelNomsArchivos.add(lblPanelNomArchivos);
 		panelNomsArchivos.add(txtCerti);
@@ -292,18 +362,19 @@ public class Main extends JFrame {
 		
 		//-----------------------------------------------------------------
 		//SEPARADOR FIJO
-		Component horizontalStrut = Box.createHorizontalStrut(20);
+		Component horizontalStrut = Box.createHorizontalStrut(altBtn);
 		horizontalStrut.setName("horizontalStrut");
-		horizontalStrut.setBounds(pos_bordeIzq, hScrollEsc, wContentPane, separador);
+		horizontalStrut.setBounds(posInitIzq, altScrollEsc, wContentPane, separador);
 		ven.getContentPane().add(horizontalStrut);
 
+		
 		//-----------------------------------------------------------------
 		//DATOS JPANEL LECTURA
 		panelLectura = new JPanel();
 		panelLectura.setName("panelLectura");		
 		panelLectura.setLayout(null);
 		//Con esto se fuerza a que aparezcan los scrollbars
-		panelLectura.setPreferredSize(new Dimension(2000, 900));
+		panelLectura.setPreferredSize(new Dimension(ancPanelLectura, altPanelLectura));
 				
 		
 		//-----------------------------------------------------------------
@@ -312,10 +383,9 @@ public class Main extends JFrame {
 		scrollLectura.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		scrollLectura.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		//scrollLectura.setAutoscrolls(true); 
-		scrollLectura.setBounds(new Rectangle(pos_bordeIzq, pos_hScrollLec, wScrollLec, hScrollLec));
-		scrollLectura.setViewportBorder(new TitledBorder(null, "Lectura", TitledBorder.LEADING, TitledBorder.TOP, null, null));
-		
+		scrollLectura.setViewportBorder(new TitledBorder(null, "Lectura", TitledBorder.LEADING, TitledBorder.TOP, fteTitulos, colTitulos));
 		scrollLectura.setViewportView(panelLectura);
+		scrollLectura.setBounds(new Rectangle(posInitIzq, posY_hScrollLec, rVen.width, altScrollLec));
 		ven.getContentPane().add(scrollLectura);
 		
 		ven.validate();
@@ -332,82 +402,118 @@ public class Main extends JFrame {
 		//ETIQUETAS LECTURA
 		bounds = panelLectura.getBounds();
 		
-		lblPanelLectura.setText("Aquí se mostrará la información sobre los archivos");
-		lblPanelLectura.setBounds(10, 10, 640, 16);		
+		lblPanelLectura.setName("lblPanelLectura");
+		lblPanelLectura.setText("Aquí abajo se mostrará la información sobre los archivos");
 		lblPanelLectura.setForeground(Color.BLACK);
+		lblPanelLectura.setFont(fteTextos);
+		tamAncTex = getTamanioAnchoTexto(lblPanelLectura);
+		lblPanelLectura.setBounds(10, altGenInit - 20, tamAncTex + spaceHor, altLbl);		
 				
-		txA_Lectura.setBounds(10, 40 , 640, 440);
 		txA_Lectura.setEditable(false);
 		txA_Lectura.setEnabled(true);
 		txA_Lectura.setText("Sexo");
+		txA_Lectura.setFont(fteTextos);
+		txA_Lectura.setBounds(10, 40 , ancTxtArea, altTxtArea);
 		
+		//-----------------------------------------------------------------
 				
-		lblCargarCer.setBounds(680, 10, 140, 16);
 		lblCargarCer.setText("Cargar Certificado");
 		lblCargarCer.setForeground(Color.BLACK);
+		lblCargarCer.setFont(fteTextos);
+		lblCargarCer.setBounds(680, altGenInit, ancLblPanelLectura, altLbl);
 		
-		final Font fuente = txtCargarCer.getFont();
-		infoFuente(fuente);
+		System.err.println(lblCargarCer.getBounds());
 		
-		btnCargarCer.setBounds(680, 30, 84, 20);
+		posY_LblPanelLectura = lblCargarCer.getY() + lblCargarCer.getHeight();
 		btnCargarCer.setText("cargar");
 		btnCargarCer.setName("btnCargarCer");
+		btnCargarCer.addActionListener(eventos);
+		btnCargarCer.setBounds(680, posY_LblPanelLectura, 84, altBtn);
 		
-		txtCargarCer.setBounds(680, 55, 400, 16);
+		System.err.println(btnCargarCer.getBounds());
+		
+		posY_LblPanelLectura = btnCargarCer.getY() + btnCargarCer.getHeight();
 		txtCargarCer.setText("seleccione un archivo");
 		txtCargarCer.setForeground(Color.GRAY);
 		txtCargarCer.setBackground(Color.WHITE);
-		txtCargarCer.setFont(new Font(fuente.getName(), fuente.BOLD, fuente.getSize()));
-		infoFuente(txtCargarCer.getFont());
+		txtCargarCer.setFont(fteTextos);
+		//infoFuente(txtCargarCer.getFont());
 		txtCargarCer.setEnabled(true);
 		txtCargarCer.setEditable(false);// Evita que el usuario escriba
 		txtCargarCer.setBorder(null); // Quita el borde de caja de texto
-		txtCargarCer.setOpaque(true);// Hace el fondo transparente como un JLabel
+		txtCargarCer.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCargarCer.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtCargarCer.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);
 		
-		lblCargarPubk.setBounds(680, 110, 140, 16);
+		System.err.println(txtCargarCer.getBounds());
+		
+		//-----------------------------------------------------------------
+		
+		posY_LblPanelLectura = txtCargarCer.getY() + txtCargarCer.getHeight();
+		posY_LblPanelLectura += (altGenInit);		
+		System.err.println(posY_LblPanelLectura);
+		
 		lblCargarPubk.setText("Cargar Public Key");
+		lblCargarPubk.setFont(fteTextos);
 		lblCargarPubk.setForeground(Color.BLACK);
+		lblCargarPubk.setBounds(680, posY_LblPanelLectura, ancLblPanelLectura, altLbl);//110
 		
-		btnCargarPubk.setBounds(680, 130, 84, 20);
+		posY_LblPanelLectura = lblCargarPubk.getY() + lblCargarPubk.getHeight();
 		btnCargarPubk.setText("cargar");
 		btnCargarPubk.setName("btnCargarPubk");
+		btnCargarPubk.addActionListener(eventos);
+		btnCargarPubk.setBounds(680, posY_LblPanelLectura, 84, altBtn);//130
 		
-		txtCargarPubk.setBounds(680, 155, 400, 16);
+		posY_LblPanelLectura = btnCargarPubk.getY() + btnCargarPubk.getHeight();
 		txtCargarPubk.setText("seleccione un archivo");
 		txtCargarPubk.setForeground(Color.GRAY);
 		txtCargarPubk.setBackground(Color.WHITE);
-		txtCargarPubk.setFont(new Font(fuente.getName(), fuente.BOLD, fuente.getSize()));
+		txtCargarPubk.setFont(fteTextos);
 		txtCargarPubk.setEnabled(true);
 		txtCargarPubk.setEditable(false);// Evita que el usuario escriba
 		txtCargarPubk.setBorder(null); // Quita el borde de caja de texto
-		txtCargarPubk.setOpaque(true);// Hace el fondo transparente como un JLabel
+		txtCargarPubk.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCargarPubk.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtCargarPubk.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);//155
+		//-----------------------------------------------------------------
 		
-		lblCargarPrik.setBounds(680, 210, 140, 16);
+		posY_LblPanelLectura = txtCargarPubk.getY() + txtCargarPubk.getHeight();
+		posY_LblPanelLectura += (altGenInit);		
+		System.err.println(posY_LblPanelLectura);
+		
 		lblCargarPrik.setText("Cargar Private Key");
 		lblCargarPrik.setForeground(Color.BLACK);
+		lblCargarPrik.setFont(fteTextos);
+		lblCargarPrik.setBounds(680, posY_LblPanelLectura, ancLblPanelLectura, altLbl);//210
 		
-		btnCargarPrik.setBounds(680, 230, 84, 20);
+		posY_LblPanelLectura = lblCargarPrik.getY() + lblCargarPrik.getHeight();
 		btnCargarPrik.setText("cargar");
 		btnCargarPrik.setName("btnCargarPrik");
+		btnCargarPrik.addActionListener(eventos);
+		btnCargarPrik.setBounds(680, posY_LblPanelLectura,  84, altBtn);//230
 
-		txtCargarPrik.setBounds(680, 255, 400, 16);
+		posY_LblPanelLectura = btnCargarPrik.getY() +btnCargarPrik.getHeight();
 		txtCargarPrik.setText("seleccione un archivo");
 		txtCargarPrik.setForeground(Color.GRAY);
 		txtCargarPrik.setBackground(Color.WHITE);
-		txtCargarPrik.setFont(new Font(fuente.getName(), fuente.BOLD, fuente.getSize()));
+		txtCargarPrik.setFont(fteTextos);
 		txtCargarPrik.setEnabled(true);
 		txtCargarPrik.setEditable(false);// Evita que el usuario escriba
 		txtCargarPrik.setBorder(null); // Quita el borde de caja de texto
 		txtCargarPrik.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCargarPrik.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtCargarPrik.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);//255
 		
-		btnAnalizar.setBounds(680, 300, 160, 20);
+		//-----------------------------------------------------------------
+		posY_LblPanelLectura = txtCargarPrik.getY() + txtCargarPrik.getHeight();
+		posY_LblPanelLectura += (altGenInit * 2);		
+		System.err.println(posY_LblPanelLectura);
+		
 		btnAnalizar.setText("Analizar");
 		btnAnalizar.setName("btnAnalizar");
 		//btnAnalizar.addActionListener(e -> null);
-		btnAnalizar.addActionListener(new ListenerBtn());
+		btnAnalizar.addActionListener(eventos);
+		btnAnalizar.setBounds(680, posY_LblPanelLectura, 160, altBtn);//300
 		
 		panelLectura.add(lblPanelLectura);
 		panelLectura.add(txA_Lectura);
@@ -501,20 +607,180 @@ public class Main extends JFrame {
 		}
 	}
 
-	private class ListenerBtn implements ActionListener{
 
+	private int getTamanioAncho(Component c) {
+		double d = c.getSize().width;
+		
+		int i = (int) Math.ceil(d / 5.0) * 5;
+		//i += 5;
+		System.out.println(c.getName() + "-TamAnch: " + i);
+		
+		return i;
+	}
+	
+	private int getTamanioAnchoTexto(Component c) {
+		double d = c.getPreferredSize().width;
+		
+		int i = (int) Math.ceil(d / 5.0) * 5;
+		i += 10;
+		System.out.println(c.getName() + "-TamAnchTexto: " + i);
+		
+		return i;
+	}
+	
+	private int getPosicionAncho(Component c) {
+		Rectangle r = c.getBounds();
+		double d = r.width + r.x;
+		
+		int i = (int) Math.ceil(d / 5.0) * 5;
+		//i += 5;
+		System.out.println(c.getName() + "-PosAnch: " + i);
+		
+		return i;
+	}
+	
+	private int getPosicionAlto(Component c) {
+		Rectangle r = c.getBounds();
+		double d = r.height + r.y;
+		
+		int i = (int) Math.ceil(d / 5.0) * 5;
+		//i += 5;
+		System.out.println(c.getName() + "-PosAlto: " + i);
+		
+		return i;
+	}
+	
+	
+	private class Eventos implements ActionListener{
+
+		//private JFrame jF = null;
+		private Main main = null;
+		
+		public Eventos(Main jFrame) {
+			this.main = jFrame; 
+		}
+		
 		@Override
 		public void actionPerformed(ActionEvent e) {
-			if(e.getSource() == btnAnalizar) {
-				JOptionPane.showMessageDialog(
-						null, 
-						"La sal debe ser un número",
-						"Salt requerido",
-						JOptionPane.ERROR_MESSAGE
-					);
+			if(e.getSource() == main.btnCargarCer) {
+				JFileChooser fc = new JFileChooser();
+				
+				//Configurarlo en modo SOLO ARCHIVOS
+				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				
+				fc.setCurrentDirectory(new File("D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key"));
+				
+				//Configura las extensiones permitidas8
+				FileNameExtensionFilter filtro = new FileNameExtensionFilter("Certificado (.cer)", "cer");
+				//FileNameExtensionFilter filtro2 = new FileNameExtensionFilter("Filtro 2 (.cer)", "cer");
+				
+				fc.addChoosableFileFilter(filtro);
+				//fc.addChoosableFileFilter(filtro2);
+				
+				//Establece el filtro predeterminado para JFileChooser
+				fc.setFileFilter(filtro);
+				
+				//Configura la selección múltiple de elementos a la vez
+				fc.setMultiSelectionEnabled(false);
+				
+				//Desactiva la opción "Todos los archivos (*.*)" 
+		        fc.setAcceptAllFileFilterUsed(false);
+				
+				//Muestra la ventana para abrir archivo
+				int resul = fc.showOpenDialog(main);
+				
+				if(resul == JFileChooser.APPROVE_OPTION) {
+					//File arch = fc.getSelectedFile();
+					main.arch_cert = fc.getSelectedFile();
+					main.txtCargarCer.setText(arch_cert.getName());
+				}else {
+					main.arch_cert = null;
+					main.txtCargarCer.setText("seleccione un archivo");					
+				}
+				
+			}
+
+			
+			if(e.getSource() == main.btnCargarPrik) {
+				JFileChooser fc = new JFileChooser();
+				
+				//Configurarlo en modo SOLO ARCHIVOS
+				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				
+				fc.setCurrentDirectory(new File("D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key"));
+				
+				//Configura las extensiones permitidas8
+				FileNameExtensionFilter filtro = new FileNameExtensionFilter("Private Key (.key)", "key");
+				//FileNameExtensionFilter filtro2 = new FileNameExtensionFilter("Filtro 2 (.cer)", "cer");
+				
+				fc.addChoosableFileFilter(filtro);
+				//fc.addChoosableFileFilter(filtro2);
+				
+				//Establece el filtro predeterminado para JFileChooser
+				fc.setFileFilter(filtro);
+				
+				//Configura la selección múltiple de elementos a la vez
+				fc.setMultiSelectionEnabled(false);
+				
+				//Desactiva la opción "Todos los archivos (*.*)" 
+		        fc.setAcceptAllFileFilterUsed(false);
+				
+				//Muestra la ventana para abrir archivo
+				int resul = fc.showOpenDialog(main);
+				
+				if(resul == JFileChooser.APPROVE_OPTION) {
+					//File arch = fc.getSelectedFile();
+					main.arch_prik = fc.getSelectedFile();
+					main.txtCargarPrik.setText(arch_prik.getName());
+				}else {
+					main.arch_prik = null;
+					main.txtCargarPrik.setText("seleccione un archivo");					
+				}
+				
 			}
 			
+			
+			if(e.getSource() == main.btnCargarPubk) {
+				JFileChooser fc = new JFileChooser();
+				
+				//Configurarlo en modo SOLO ARCHIVOS
+				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				
+				fc.setCurrentDirectory(new File("D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key"));
+				
+				//Configura las extensiones permitidas8
+				FileNameExtensionFilter filtro = new FileNameExtensionFilter("Public Key (.key/.pubkey)", "key","pubkey");
+				//FileNameExtensionFilter filtro2 = new FileNameExtensionFilter("Filtro 2 (.cer)", "cer");
+				
+				fc.addChoosableFileFilter(filtro);
+				//fc.addChoosableFileFilter(filtro2);
+				
+				//Establece el filtro predeterminado para JFileChooser
+				fc.setFileFilter(null);
+				
+				//Configura la selección múltiple de elementos a la vez
+				fc.setMultiSelectionEnabled(false);
+				
+				//Desactiva la opción "Todos los archivos (*.*)" 
+		        fc.setAcceptAllFileFilterUsed(false);
+				
+				//Muestra la ventana para abrir archivo
+				int resul = fc.showOpenDialog(main);
+				
+				if(resul == JFileChooser.APPROVE_OPTION) {
+					//File arch = fc.getSelectedFile();
+					main.arch_pubk = fc.getSelectedFile();
+					main.txtCargarPubk.setText(arch_pubk.getName());
+				}else {
+					main.arch_pubk = null;
+					main.txtCargarPubk.setText("seleccione un archivo");					
+				}
+				
+			}
+
+
 		}
+		
 		
 	}
 }

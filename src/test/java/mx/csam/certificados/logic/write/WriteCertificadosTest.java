@@ -204,14 +204,15 @@ class WriteCertificadosTest {
 		}
 		
 		// CURVAS GOST
-		String[] arrGOST_tmp = CertificadosUtils.ALGORTIMOS_FAM_EC.GOST.algoritmos_de_clave;
+		/*String[] arrGOST_tmp = CertificadosUtils.ALGORTIMOS_FAM_EC.GOST.algoritmos_de_clave;
 		
 		//Generaciones de Curva 
 		String[] arrGOST = {
 				arrGOST_tmp[0], 
 				arrGOST_tmp[1].concat(" (256)"), 
 				arrGOST_tmp[1].concat(" (512)")
-		};
+		};*/
+		String[] arrGOST = CertificadosUtils.ALGORTIMOS_FAM_EC.GOST.gen_curva;
 		
 		//Devuelve un mapa de las generaciones de curva y sus parametros de curva respectivos
 		MultiValueMap<String, String> listaGOST = CertificadosUtils.ALGORTIMOS_FAM_EC.GOST.parametros_de_curva_GOST();

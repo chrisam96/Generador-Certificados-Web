@@ -33,9 +33,6 @@ public final class CertificadosUtils {
 	// --------------------------------------------------------------------
 	// ALGORITMOS ASIMETRICOS PARA KEY_PAIR_GENERATOR
 	
-	//Tipo de Algoritmo Asímetrico 
-	public static String [] algoritmo_asimetrico = {"RSA", "DSA", "EC", "Ed25519", "Ed448", "GOST", "RSA-PSS" };
-	
 	public static Map<String, String> lista_menu_algoritmo_asimetrico(){
 		Map<String, String> lista =  new HashMap<String, String>();
 		
@@ -50,18 +47,31 @@ public final class CertificadosUtils {
 		
 		return lista;
 	}
-		
+	
+	//Tipo de Algoritmo Asímetrico 
+	public final static String [] algoritmo_asimetrico = {"RSA", "DSA", "EC", "Ed25519", "Ed448", "GOST", "RSA-PSS" };	
+	
 	// --------------------------------------------------------------------
-	// INICIALIZADORES PARA KEY_PAIR_GENERATOR
+	// INICIALIZADORES PARA KEY_PAIR_GENERATOR		
 
 	//Verificar si se puede MENOS DE 2048
-	public static String [] tamanio_de_clave_KPG = {"1024", "2048", "3072", "4096", "6144", "8192"};
+	public static String [] lista_todos_tamanio_de_clave_KPG = {"1024", "2048", "3072", "4096", "6144", "8192"};
 	
+	//Listas de algoritmo HASH de la familia SHA
+	public final static String [] lista_hash_familia_SHA1 = {"SHA-1", "MD2", "MD5"};
+	public final static String [] lista_hash_familia_SHA2 = {"SHA-224", "SHA-256", "SHA-384", "SHA-512", "SHA-512/224","SHA-512/256"};
+	public final static String [] lista_hash_familia_SHA3 = {"SHA3-224", "SHA3-256", "SHA3-384", "SHA3-512"};
+	
+	public final static String [] lista_curvas_init_EC_mas_usadas = concatenarArrays(
+		ALGORTIMOS_FAM_EC.SECG_o_NIST.NIST_mas_usadas,
+		ALGORTIMOS_FAM_EC.Brainpool.Brainpool_mas_usados
+	);
+
 	public static MultiValueMap<String, String> lista_tamanio_Bits_KPG_algoritmo_asimetrico(){
 		MultiValueMap<String, String> lista =  new LinkedMultiValueMap<String, String>();
 		
-		lista.put("RSA", Arrays.asList(tamanio_de_clave_KPG) ); 
-		lista.put("DSA", Arrays.asList(tamanio_de_clave_KPG) );
+		lista.put("RSA", Arrays.asList(lista_todos_tamanio_de_clave_KPG) ); 
+		lista.put("DSA", Arrays.asList(Arrays.copyOfRange(lista_todos_tamanio_de_clave_KPG, 0, 3) )  );
 		lista.put("EC", Arrays.asList(
 				concatenarArrays(
 					ALGORTIMOS_FAM_EC.SECG_o_NIST.NIST_mas_usadas,
@@ -71,9 +81,197 @@ public final class CertificadosUtils {
 		lista.put("Ed25519", Arrays.asList()); 
 		lista.put("Ed448", Arrays.asList()); 
 		lista.put("GOST", Arrays.asList(ALGORTIMOS_FAM_EC.GOST.algoritmos_de_clave));
-		lista.put("RSA-PSS", Arrays.asList(tamanio_de_clave_KPG));
+		lista.put("RSA-PSS", Arrays.asList(lista_todos_tamanio_de_clave_KPG));
 		
 		return lista;
+	}
+	
+	/**
+	 * Devuelve una colección tipo {@code HashMap<String, Object[]>} con la 
+	 * información necesaria para los parámetros usados por la clase 
+	 * {@link java.security.KeyPairGenerator} con base al algoritmo asimetrico
+	 * elegido para la generación de la Private Key 
+	 * 
+	 * @return {@code HashMap<String, Object[]>}
+	 */
+	//public static HashMap<String, HashMap<String, List<String>>> listaParametrosKPG(){
+	//public static HashMap<String, HashMap<String, List<String>>> listaParametrosKPG(){
+	public static LinkedHashMap<String, LinkedHashMap<String, List<String>>> listaParametrosKPG(){
+		//HashMap<String, Object[]> lista = new HashMap<String, Object[]>();
+
+		//HashMap<String, HashMap<String, List<String>>> listaV2 = new HashMap<String, HashMap <String, List<String>>>();		
+		//HashMap<String, HashMap<String, List<String>>> listaV2 = new HashMap<>();
+		LinkedHashMap<String, LinkedHashMap<String, List<String>>> listaV2 = new LinkedHashMap<>();
+		LinkedHashMap<String, List<String>> sublista = null;//new HashMap <String, List<String>>();
+
+		//sl = SubLista
+		//ArrayList<String> slParam1 = null; 
+		//ArrayList<String> slParam2 = null;
+		//Object[] valores = null;
+		
+		//Algoritmo
+		for (String alg : algoritmo_asimetrico) {
+			String key = alg;
+					
+			switch (key) {
+				case "RSA" -> {
+					/*slParam1 = (ArrayList<String>) List.of(lista_todos_tamanio_de_clave_KPG);
+					slParam2 = (ArrayList<String>) List.of(
+						concatenarArrays(
+							lista_hash_familia_SHA1,
+							lista_hash_familia_SHA2,
+							lista_hash_familia_SHA3
+						)
+					);*/
+
+					List<String> familias_SHA = List.of(
+						concatenarArrays(
+							lista_hash_familia_SHA1,
+							lista_hash_familia_SHA2,
+							lista_hash_familia_SHA3
+						)
+					);
+
+					//sublista = new HashMap<>();
+					sublista = new LinkedHashMap<>();
+
+					for (String tamanio : lista_todos_tamanio_de_clave_KPG) {
+						sublista.put(tamanio, new ArrayList<>(familias_SHA));
+					}
+
+				}
+				case "RSA-PSS" -> {					
+					/*slParam1 = (ArrayList<String>) List.of(lista_todos_tamanio_de_clave_KPG);
+					slParam2 = (ArrayList<String>) List.of(
+						concatenarArrays(
+							Arrays.copyOfRange(lista_hash_familia_SHA1, 0, 1),
+							lista_hash_familia_SHA2,
+							lista_hash_familia_SHA3
+						)
+					);*/
+					List<String> familias_SHA = List.of(
+						concatenarArrays(
+							Arrays.copyOfRange(lista_hash_familia_SHA1, 0, 1),
+							lista_hash_familia_SHA2,
+							lista_hash_familia_SHA3
+						)
+					);
+
+					//sublista = new HashMap<>();
+					sublista = new LinkedHashMap<>();
+
+					for (String tamanio : lista_todos_tamanio_de_clave_KPG) {
+						sublista.put(tamanio, new ArrayList<>(familias_SHA));
+					}					
+				}
+				case "DSA" -> {
+					/* 
+					slParam1 = (ArrayList<String>) List.of(Arrays.copyOfRange(lista_todos_tamanio_de_clave_KPG, 0, 3) );
+					slParam2 = (ArrayList<String>) List.of(
+						concatenarArrays(
+							Arrays.copyOfRange(lista_hash_familia_SHA1, 0, 1),
+							Arrays.copyOfRange(lista_hash_familia_SHA2, 0, 3)
+						)
+					);
+					*/
+
+					//sublista = new HashMap<String, List<String>>();
+					//sublista = new HashMap<>();
+					sublista = new LinkedHashMap<>();
+
+					sublista.put("1024", new ArrayList<>(
+						List.of("SHA-1")
+					));
+					sublista.put("2048", new ArrayList<>(
+						List.of("SHA-224", "SHA-256")
+					));
+					sublista.put("3072", new ArrayList<>(
+						List.of("SHA-256")
+					));
+
+					listaV2.put(key, sublista);
+				}
+				case "EC", "ECDSA" -> {
+					/* 
+		 			* --------------------------------------------------------
+		 			* ALGORITMO	     |Param 1		|Param 2		|Param 3
+		 			* --------------------------------------------------------
+		 			* EC			|Curva Init		|				|
+		 			* ---------------------------------------------------------
+		 			* */
+					/*slParam1 = (ArrayList<String>) Arrays.asList(						
+						concatenarArrays(
+							ALGORTIMOS_FAM_EC.SECG_o_NIST.NIST_mas_usadas,
+							ALGORTIMOS_FAM_EC.Brainpool.Brainpool_mas_usados
+						)						
+					);*/
+
+					//EL SEGUNDO PARAMETRO NO EXISTE
+					//slParam2 = new ArrayList<>();
+					
+					//sublista = new HashMap<>();
+					sublista = new LinkedHashMap<>();			
+
+					for(String curvaInit : lista_curvas_init_EC_mas_usadas){						
+						sublista.put(curvaInit, new ArrayList<>());
+					}
+				}
+				case "GOST" -> {
+					/* 
+					* --------------------------------------------------------
+					* ALGORITMO	 	|Param 1		|Param 2		|Param 3
+					* --------------------------------------------------------					
+					* GOST			|Curva Init 	|Gen Curva		|
+					* ---------------------------------------------------------
+					* */
+
+					//sublista = new HashMap<>();
+					sublista = new LinkedHashMap<>();
+
+					for(String genCurva : ALGORTIMOS_FAM_EC.GOST.gen_curva){
+						List<String> curvaInit =  
+							ALGORTIMOS_FAM_EC.GOST.parametros_de_curva_GOST().get(genCurva);
+						sublista.put(genCurva, new ArrayList<>(curvaInit));
+					}
+					
+				}
+				case "Ed25519" -> {
+					// NO REQUIEREN PARAMETROS EXTRA
+					/*slParam1 = new ArrayList<String>();
+					slParam2 = new ArrayList<String>();*/
+
+					//sublista = new HashMap<>();
+					sublista = new LinkedHashMap<>();
+				}
+				case "Ed448" -> {
+					// NO REQUIEREN PARAMETROS EXTRA
+					/*slParam1 = new ArrayList<String>();
+					slParam2 = new ArrayList<String>();*/
+
+					//sublista = new HashMap<>();
+					sublista = new LinkedHashMap<>();
+				}
+				default ->{					
+					//Usualmente es para un algoritmo desconocido
+					//o  no registrado
+					/*slParam1 = new ArrayList<String>();
+					slParam2 = new ArrayList<String>();*/
+
+					//sublista = new HashMap<>();
+					sublista = new LinkedHashMap<>();
+					//throw new IllegalArgumentException("Unexpected value: " + key);
+				}
+			}
+			/*
+			valores = new Object[2];
+			valores[0] = slParam1;
+			valores[1] = slParam2;
+			lista.put(key, valores);
+			*/
+			listaV2.put(key, sublista);
+		}
+		
+		return listaV2;
 	}
 	
 	public static String[] concatenarArrays(String[] ... listas ) {
@@ -128,7 +326,8 @@ public final class CertificadosUtils {
 	public static class ALGORTIMOS_FAM_EC {			
 		
  		public final class SECG_o_NIST{			
-				public static final String[] SECP_Curvas_sobre_campos_primos = {
+				public static final String[] SECP_Curvas_sobre_campos_primos = 
+				{
 					"secp112r1",          
 					"secp112r2",          	
 					"secp128r1",          	
@@ -306,15 +505,23 @@ public final class CertificadosUtils {
 		};
 	}
 	
+
 	
 	// --------------------------------------------------------------------
 	// ALGORITMO PARA LA FIRMA (DEL OBJETO JCA_CONTENT_SIGNER_BUILDER)
 	
-	//Tamaño de bits
-	public String [] tamanio_de_hash_firma_SHA1 = {"SHA-1", "MD2", "MD5"};
-	public String [] tamanio_de_hash_firma_SHA2 = {"224", "256", "384", "512", "512/224","512/256"};
-	public String [] tamanio_de_hash_firma_SHA3 = {"224", "256", "384", "512"};
+	//Tamaño de bits que representa el algoritmo SHA
+	public final static String [] tamanio_de_hash_firma_SHA1 = {"SHA-1", "MD2", "MD5"};
+	public final static String [] tamanio_de_hash_firma_SHA2 = {"224", "256", "384", "512", "512/224","512/256"};
+	public final static String [] tamanio_de_hash_firma_SHA3 = {"224", "256", "384", "512"};
 	
+	//Listas de algoritmo HASH de la familia SHA
+	/*
+	public final static String [] lista_hash_familia_SHA1 = {"SHA-1", "MD2", "MD5"};
+	public final static String [] lista_hash_familia_SHA2 = {"SHA-224", "SHA-256", "SHA-384", "SHA-512", "SHA-512/224","SHA-512/256"};
+	public final static String [] lista_hash_familia_SHA3 = {"SHA3-224", "SHA3-256", "SHA3-384", "SHA3-512"};
+	*/
+
 	/**
 	* Plantilla para el Algoritmo de Hashing<br><br>
 	* <ul>
@@ -604,7 +811,10 @@ public final class CertificadosUtils {
 	// PARAMETROS DEL RSA-PSS
 
 	/**
+	 * Retorna una {@code Map<String, MGF1ParameterSpec>} con los par&aacute;metros
+	 * del algoritmo MGF1.
 	 * 
+	 * @return {@code Map<String, MGF1ParameterSpec>}
 	 * */
 	public static Map<String, MGF1ParameterSpec> listaPSSParameterSpec(){
 		HashMap<String, MGF1ParameterSpec> lista = new HashMap<String, MGF1ParameterSpec>();
@@ -634,7 +844,8 @@ public final class CertificadosUtils {
 	 * 
 	 * <pre>
 	 *	| ------------------- | ----------------------------- |
-	 * 	| Tamaño de clave DSA | Hash permitido históricamente |
+	 * 	| Tamaño de clave     | (Tamaño de) Hash SHA          |
+	 * 	| (en BITS)           |(Hash permitido históricamente)|
 	 *	| ------------------- | ----------------------------- |
 	 *	| 1024                | SHA-1 (160 bits)              |
 	 *	| ------------------- | ----------------------------- |
@@ -669,7 +880,8 @@ public final class CertificadosUtils {
 	 * 
 	 * <pre>
 	 *	| ------------------- | ----------------------------- |
-	 * 	| Tamaño de clave DSA | Hash permitido históricamente |
+	 * 	| Tamaño de clave     | (Tamaño de) Hash SHA          |
+	 * 	| (en BITS)           |(Hash permitido históricamente)|
 	 *	| ------------------- | ----------------------------- |
 	 *	| 1024                | SHA-1 (160 bits)              |
 	 *	| ------------------- | ----------------------------- |
@@ -749,31 +961,19 @@ public final class CertificadosUtils {
 	 * 
 	 * */
 	public static String firmaEnEC(String curvaInit ) {
-		
-		/*
-		 * Es más universal pero peca de ser más lento
-		 * 
-		//Elimina los subindices de la curva EC para buscar un aproximado
-		String[] EC_sufijos = { "r1", "t1", "v1", "k1", "r2", "Ed", "X" }; 
-		
-		for (String pos : EC_sufijos) {
-			if(curvaInit.contains(pos)){
-				if(pos.equals("t1") && curvaInit.contains("sect")) {
-					continue;
-				}
-				else {
-					curvaInit = curvaInit.replace(pos, "");
-					break;
-				}
-			}
-		}
-		*/
 	
 		//Remueve el sufijo { "r1", "t1", "v1", "k1", "r2", "Ed", "X" };
 		if(curvaInit.contains("secp") || curvaInit.contains("sect") 
 			|| curvaInit.contains("brainpool") || curvaInit.contains("prime")) {
-			
-			curvaInit = curvaInit.substring(0, curvaInit.length()-2 );
+
+			//Remueve el sufijo ESPECIFICO de X
+			if (curvaInit.endsWith("X")) {
+				curvaInit = curvaInit.substring(0, curvaInit.length()-1 );				
+			}
+			//Remueve todos los demás sufijos
+			else {
+				curvaInit = curvaInit.substring(0, curvaInit.length()-2 );
+			}
 		}
 
 		//remueve el prefijo de la curva EC para buscar un aproximado

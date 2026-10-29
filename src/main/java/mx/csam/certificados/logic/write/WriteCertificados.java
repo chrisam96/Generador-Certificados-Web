@@ -204,13 +204,14 @@ public class WriteCertificados {
 		//DN = Distinguised Name
 		String distName = concatenarContenidoCertificado(datosDN);
 		
-		//Se asignan los datos
+		/*Se asignan los datos
 		// CN = Nombre del Titular			
 		// O = Organizacion
 		// OU = Unidad Organizacional o subdivision de la organizacion
 		// L = Ciudad o Localidad
 		// ST = Estado o Provincia
 		// C = Codigo de 2 letras del Pais
+		*/
 		
 		//Todos ellos en conjunto se llaman Distingished Name (DN) 
 		X500Name x500 = new X500Name(distName);
@@ -801,7 +802,23 @@ public class WriteCertificados {
 		 * [1] tamSHA_o_genCurva
 		 * [2] salt
 		 * 
-		 * Cuando creas un certificado con X509v3CertificateBuilder, usas un ContentSigner. 
+		 * Dichos nombres de los parametros fueron elaborados en base a la tabla
+		 * de abajo. En la primera columna van los algoritmos y las demás columnas
+		 * son para saber si dicho algoritmo requiere 1, 2 o 3 parámetros. 
+		 * 
+		 * En cada columna de Param "X" viene el nombre que se le dió al dato 
+		 * (parametro) que requiere cada algoritmo.  
+		 * --------------------------------------------------------
+		 * ALGORITMO	|Param 1		|Param 2		|Param 3
+		 * --------------------------------------------------------
+		 * RSA-PSS 		|Tam Clave BITS	|Tam Hash SHA	|Salt
+		 * EC			|Curva Init		|				|
+		 * GOST			|Curva Init 	|Gen Curva		|	 
+		 * RSA			|Tam Clave BITS	|				|
+		 * DSA			|Tam Clave BITS	|				|
+		 * ---------------------------------------------------------
+		 */ 
+		/* Cuando creas un certificado con X509v3CertificateBuilder, usas un ContentSigner. 
 		 * El algoritmo que le pasas debe corresponder al tipo de clave:
 
 			RSA → "SHA256withRSA", ("SHA384withRSA", etc.) "SHA1withRSA", "MD2withRSA", "MD5withRSA"
@@ -823,12 +840,14 @@ public class WriteCertificados {
 		/*
 		 * Combinaciones de Hashes y Curvas segun Algoritmo Asimetrico
 		 * 
-		 * RSA		 * 
+		 * RSA
 		 * 
 		 * Básicamente todos los tamaños de Clave son compatibles con 
 		 * todas las variaciones de Hash
 		 * 
-		 * 	| Tamaño de clave RSA | Hash permitido históricamente |
+		 *	-------------------------------------------------------			
+		 * 	| Tamaño de clave     | (Tamaño de) Hash SHA          |
+		 * 	| (en BITS)           |(Hash permitido históricamente)|
 		 *	| ------------------- | ----------------------------- |
 		 *	| 1024, 2048,         | MD2, MD5, SHA-1 (160 bits)    |
 		 *	| 3072, 4096,         | SHA-224, SHA-256, SHA-384,    |
@@ -845,7 +864,9 @@ public class WriteCertificados {
 		 * (tamñao de bits) con los algoritmos SHA hay restricciones en
 		 * sobre el tamaño de la sal que se puede llegar a usar
 		 * 
-		 * 	| Tamaño de clave RSA | Hash permitido históricamente |
+		 *	-------------------------------------------------------			
+		 * 	| Tamaño de clave     | (Tamaño de) Hash SHA          |
+		 * 	| (en BITS)           |(Hash permitido históricamente)|
 		 *	| ------------------- | ----------------------------- |
 		 *	| 1024, 2048,         | MD2, MD5, SHA-1 (160 bits)    |
 		 *	| 3072, 4096,         | SHA-224, SHA-256, SHA-384,    |
@@ -854,6 +875,10 @@ public class WriteCertificados {
 		 *	|                     | SHA3-384, SHA3-512            |
 		 *	-------------------------------------------------------	
 		 *
+		 *  NOTA: A pesar de estar soportado los hashes de MD2 y MD5 en RSA-PSS,
+		 *  no se recomienda su uso ya que no están soportados en los parametros de
+		 *  de la firma PSSParameterSpec.
+		 * 
 		 * La combinación del tamaño del hash (SHA), tamaño de clave y de la Sal
 		 * obedece a cierta condición para hacer válida criptográficamente en RSA-PSS.
 		 * Debe cumplirse esta condición de PKCS #1:
@@ -1027,8 +1052,13 @@ public class WriteCertificados {
 		contentSigner = switch(alg) {
 			case String a when a.equals("RSA") -> {
 				//
-				firma = firma.
+				if( tamSHA_o_genCurva.contains("SHA3")){
+					firma = firma.
+						replace(placeholders[0], tamSHA_o_genCurva); //Agrega SHAxxx
+				}else{
+					firma = firma.
 						replace(placeholders[0], tamSHA_o_genCurva.replace("-","")); //Agrega SHAxxx
+				}
 				firma = firma.
 						replace(placeholders[1], alg); //Agrega el algoritmo
 				firma = firma.
@@ -1140,8 +1170,8 @@ public class WriteCertificados {
 			}
 			default -> {
 				throw new IllegalArgumentException("""
-						El valor minimo para el algoritmo de DSA no puede ser menor a 2048
-						""");
+					El valor minimo para el algoritmo de DSA no puede ser menor a 2048
+					""");
 			}
 		};
 		
@@ -2016,19 +2046,17 @@ public class WriteCertificados {
 						System.out.println("Formato: " + puk.getFormat());
 					}
 					//PARA LA ENCRYPTED_PRIVATE_KEY
-					/*En teoria es el correcto 
-					 * Pero puede pecar de ser ambiguo...
-					
-					Aunque se envia explicitamente un 
-					PemObject para la PK Cifrada
+					/*En teoria sería el correcto 
+					 * pero puede pecar de ser ambiguo
+					 * con archivos codifcados en PEM.
 					*/
 					case PemObject epik->{
 						datos = epik.getContent();
 						System.out.println("WriteCertificados.escritorDeArchivos()\n"
-								+ " - Codificacion: DER -> EncryptedPrivateKey -> PEMObject");
+							+ " - Codificacion: DER -> EncryptedPrivateKey -> PEMObject");
 						System.out.println("Tipo: " + epik.getType());
 					}
-					//Este es el teorico real de la EncryptedPrivateKey
+					//Este es el teorico real para EncryptedPrivateKey/EncryptedPrivateKeyInfo
 					case EncryptedPrivateKeyInfo epik->{
 						datos = epik.getEncoded(ASN1Encoding.DER);
 						System.out.println("WriteCertificados.escritorDeArchivos()\n"

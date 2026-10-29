@@ -75,7 +75,7 @@ class CertificadosUtilsTest {
 		}				
 		
 		assertAll("3 tipos de tamaños KPG ", 
-			() -> assertTrue(CertificadosUtils.tamanio_de_clave_KPG != null),
+			() -> assertTrue(CertificadosUtils.lista_todos_tamanio_de_clave_KPG != null),
 			() -> assertTrue(map.get("Ed448").isEmpty()),
 			//Compara array de String
 			() -> assertLinesMatch(
@@ -84,7 +84,7 @@ class CertificadosUtilsTest {
 					"No coinciden las List<String>"
 				),
 			//Compara arrays en general
-			() -> assertArrayEquals(tamaniosKPG, CertificadosUtils.tamanio_de_clave_KPG, "Los tamaños no coinciden")
+			() -> assertArrayEquals(tamaniosKPG, CertificadosUtils.lista_todos_tamanio_de_clave_KPG, "Los tamaños no coinciden")
 		);
 	}
 	
