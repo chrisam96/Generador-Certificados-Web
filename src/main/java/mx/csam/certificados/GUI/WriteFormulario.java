@@ -1128,35 +1128,35 @@ public class WriteFormulario /*extends JDialog*/ {
 		//-----------------------------------------------------------------
 		//MEDIDAS DE LOS PANELES Y ENCAPSULAMIENTO GRAFICO
 		
-		Rectangle r = dia.getContentPane().getBounds();
-		System.out.println("Rectangle JDialog " + r);
+		Rectangle rect = dia.getContentPane().getBounds();
+		System.out.println("Rectangle JDialog " + rect);
 
 		//Se otorgan los tamaños	
-		fAlg.setBounds(0, 0, r.width, 100);
+		fAlg.setBounds(0, 0, rect.width, 100);
 		tamAltoTex = getPosicionAlto(fAlg);
 		
-		fDNusuario.setBounds(0, tamAltoTex, r.width, 150);
+		fDNusuario.setBounds(0, tamAltoTex, rect.width, 150);
 		tamAltoTex = getPosicionAlto(fDNusuario);
 		
-		fDNemisor.setBounds(0, tamAltoTex, r.width, 200);
+		fDNemisor.setBounds(0, tamAltoTex, rect.width, 200);
 		tamAltoTex = getPosicionAlto(fDNemisor);
 		
-		fFecVigSer.setBounds(0, tamAltoTex, r.width, 300);
+		fFecVigSer.setBounds(0, tamAltoTex, rect.width, 300);
 		tamAltoTex = getPosicionAlto(fFecVigSer);
 		
-		fDatosKPG.setBounds(0, tamAltoTex, r.width, 150);
+		fDatosKPG.setBounds(0, tamAltoTex, rect.width, 150);
 		tamAltoTex = getPosicionAlto(fDatosKPG);
 		
-		fCerOrCsr.setBounds(0, tamAltoTex, r.width, 100);
+		fCerOrCsr.setBounds(0, tamAltoTex, rect.width, 100);
 		tamAltoTex = getPosicionAlto(fCerOrCsr);
 		
-		fDatosCifrado.setBounds(0, tamAltoTex, r.width, 150);
+		fDatosCifrado.setBounds(0, tamAltoTex, rect.width, 150);
 		tamAltoTex = getPosicionAlto(fDatosCifrado);
 		
-		fCodifArch.setBounds(0, tamAltoTex, r.width, 100);
+		fCodifArch.setBounds(0, tamAltoTex, rect.width, 100);
 		tamAltoTex = getPosicionAlto(fCodifArch);
 		
-		fBotones.setBounds(0, tamAltoTex, r.width, 100);
+		fBotones.setBounds(0, tamAltoTex, rect.width, 100);
 		tamAltoTex = getPosicionAlto(fBotones);
 		
 		//Se agregan al Content JPanel
@@ -1173,17 +1173,13 @@ public class WriteFormulario /*extends JDialog*/ {
 		
 		// > DIMENSIONES DEL CONTENT JPanel 
 		//dimensiones del Espacio interno del ScrollPane
-			content.setBounds(0, 0, r.width, 1000);
+		content.setBounds(0, 0, rect.width, 1000);
 		//Con esto se fuerza a que aparezcan los scrollbars
-		content.setPreferredSize(new Dimension(r.width, 1400));
-		//System.out.println("Rectangle panel Content " + r);
+		content.setPreferredSize(new Dimension(rect.width, 1400));		
 		
-		
-		// > DIMENSIONES DEL JScrollPanel 
-		//r = scroll.getViewport().getBounds();
 		
 		//dimensiones del ScrollPane
-		scroll.setBounds(0, 0, r.width, r.height);
+		scroll.setBounds(0, 0, rect.width, rect.height);
 		//agregar el panel al scroll
 		scroll.setViewportView(content);
 		

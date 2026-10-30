@@ -17,7 +17,6 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -196,12 +195,10 @@ public class Main extends JFrame {
 		ven =  new JFrame();
 		ven.setName("ven");
 		ven.setType(Type.POPUP);
-		ven.setBounds(new Rectangle(100, 100, wJFrame, hJFrame));
-		System.out.println(" PRIMERO DE TODOS\n"+ven.getBounds() + "\n\n\n");
+		ven.setBounds(new Rectangle(100, 100, wJFrame, hJFrame));		
 		//Forzar la visualización (para obtener las medidas del ContentPane)
 		ven.setVisible(true);
-		ven.addNotify();
-		System.out.println("**** Dimensiones del ContentPane(): "+ven.getContentPane().getBounds());
+		ven.addNotify();		
 		//-----------------------------------------------------------------
 		ven.setResizable(false);
 		ven.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -247,63 +244,26 @@ public class Main extends JFrame {
 		 * */
 		
 		//-----------------------------------------------------------------
-		//DATOS JPANEL ESCRITOR
-		panelNomsArchivos = new JPanel();
-		panelNomsArchivos.setName("panelEscritura");
-		panelNomsArchivos.setLayout(null);
-		panelNomsArchivos.setBackground(new Color(128, 255, 128));
-		//panelEscritor.setBounds(new Rectangle(0, 0, 200, 60));
-		
+
 		//-----------------------------------------------------------------
-		//DATOS JPANEL ESCRITURA
-		panelEscritura = new JPanel();
-		panelEscritura.setName("panelEscritura");
-		panelEscritura.setLayout(null);
-		panelEscritura.add(panelNomsArchivos);
 		
-		//-----------------------------------------------------------------
-		//DATOS JSCROLLPANE ESCRITURA
-		scrollEscritura.setName("scrollEscritura");		
-		scrollEscritura.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		scrollEscritura.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		/*Corresponde a cuando se arrastra un elemento dentro de un contenedor
-		 * y la pantalla se mueve con esa acción*/ 
-		//scrollEscritura.setAutoscrolls(false); 
-		scrollEscritura.setViewportBorder(new TitledBorder(null, "Escritura", TitledBorder.LEADING, TitledBorder.TOP, fteTitulos, colTitulos));
-		scrollEscritura.setViewportView(panelEscritura);		
-		scrollEscritura.setBounds(posInitIzq, posInitSup, rVen.width, altScrollEsc);
+		
 		
 		//>> MEDIDAS DE LOS CONTENEDORES INTERNOS DEL JSCROLLPANE (scrollEscritura) 
 		
-		// PRIMERO: agregar el JScrollPane al JFrame
-		ven.getContentPane().add(scrollEscritura);			
-		// FORZAR EL LAYOUT
-		ven.validate();
-		// AHORA sí: obtener el espacio real del viewport
-		Dimension d = scrollEscritura.getViewport().getExtentSize();
-		System.out.println("Viewport: " + d);
+
 		
-		//Se llena todo el espacio interno de JScrollPane con el JPanel
-		panelNomsArchivos.setBounds(
-			0, 
-			0, 
-			(int) (d.width * (4.0/5.0)),			
-			(int) (d.height)
-		);
-		panelEscritura.setBounds(0, 0, d.width, d.height);
 		
 		//-----------------------------------------------------------------
-		//ETIQUETAS
+		//ETIQUETAS DE LOS NOMBRES DE LOS ARCHIVOS CREADOS
+		
+		
 		lblPanelNomArchivos.setName("lblPanelNomArchivos");
 		lblPanelNomArchivos.setText("Oprima el botón \"Generar\" y rellene el formulario para crear el Certificado .cer y las keys correspondientes");
 		lblPanelNomArchivos.setFont(fteTextos);
 		lblPanelNomArchivos.setForeground(Color.BLACK);
-		tamAncTex = getTamanioAncho(lblPanelNomArchivos);
 		tamAncTex = getTamanioAnchoTexto(lblPanelNomArchivos);
 		lblPanelNomArchivos.setBounds(10, 5, tamAncTex + spaceHor, altLbl);
-		System.out.println(lblPanelNomArchivos.getBounds());
-		System.out.println(panelNomsArchivos.getBounds());
-		System.out.println(panelEscritura.getBounds());
 		
 		txtCerti.setText("certificado.cer");
 		txtCerti.setForeground(Color.GRAY);
@@ -334,16 +294,26 @@ public class Main extends JFrame {
 		txtPriK.setFocusable(true);// Permite que el usuario haga clic para seleccionar
 		txtPriK.setFont(fteTextos);
 		txtPriK.setBounds(10, txtPubK.getBounds().y + spaceVer + altLbl, tamAncTex + spaceHor, altLbl);
+
 		
 		//-----------------------------------------------------------------
-		//JBUTTON Escritura
-		tamAncTex = getPosicionAncho(panelNomsArchivos); 
+		//DATOS JPANEL panelNomsArchivos - CON LAS ETIQUETAS DE LOS ARCHIVOS GENERADOS
+		panelNomsArchivos = new JPanel();
+		panelNomsArchivos.setName("panelEscritura");
+		panelNomsArchivos.setLayout(null);
+		panelNomsArchivos.setBackground(new Color(128, 255, 128));		
+		
+		panelNomsArchivos.add(lblPanelNomArchivos);
+		panelNomsArchivos.add(txtCerti);
+		panelNomsArchivos.add(txtPubK);
+		panelNomsArchivos.add(txtPriK);
+		
+		//-----------------------------------------------------------------
+		//JBUTTON Escritura 
 		
 		btnEscritura = new JButton("Generar");
 		btnEscritura.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent e) {
-				//wf = new WriteFormulario(main, "Formulario", true);
-				//wf = new WriteFormulario(new JDialog(main, "Formulario", true));
 				wf = new WriteFormulario(main);
 				wf.dia.setVisible(true);
 				System.out.println("**** DESPUES DE SET_VISIBLE()");
@@ -352,14 +322,50 @@ public class Main extends JFrame {
 		btnEscritura.setName("btnGenerar");
 		btnEscritura.setFont(fteTextos);
 		btnEscritura.setBounds(920, altGenInit, 120, altBtn);
-				
-		panelNomsArchivos.add(lblPanelNomArchivos);
-		panelNomsArchivos.add(txtCerti);
-		panelNomsArchivos.add(txtPubK);
-		panelNomsArchivos.add(txtPriK);
 		
+		//-----------------------------------------------------------------
+		//DATOS JPANEL ESCRITURA
+		panelEscritura = new JPanel();
+		panelEscritura.setName("panelEscritura");
+		panelEscritura.setLayout(null);		
+
+		panelEscritura.add(panelNomsArchivos);
 		panelEscritura.add(btnEscritura);
 		
+		//-----------------------------------------------------------------
+		//DATOS JSCROLLPANE scrollEscritura
+		scrollEscritura.setName("scrollEscritura");		
+		scrollEscritura.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		scrollEscritura.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		/*Corresponde a cuando se arrastra un elemento dentro de un contenedor
+		 * y la pantalla se mueve con esa acción*/ 
+		//scrollEscritura.setAutoscrolls(false); 
+		scrollEscritura.setViewportBorder(new TitledBorder(null, "Escritura", TitledBorder.LEADING, TitledBorder.TOP, fteTitulos, colTitulos));
+	
+		scrollEscritura.setBounds(posInitIzq, posInitSup, rVen.width, altScrollEsc);
+		
+		// AHORA sí: obtener el espacio real del viewport
+		Rectangle rectSE = scrollEscritura.getBounds();
+		System.out.println("Viewport: " + rectSE);
+		
+		
+		panelNomsArchivos.setBounds(
+			0, 0, 
+			(int) (rectSE.width * (4.0/5.0)),			
+			(int) (rectSE.height)
+		);
+		//Se llena todo el espacio interno de JScrollPane con el JPaznel
+		panelEscritura.setBounds(0, 0, rectSE.width, rectSE.height);
+		panelEscritura.validate();
+		
+		
+		
+		scrollEscritura.setBounds(posInitIzq, posInitSup, rVen.width, altScrollEsc);
+		scrollEscritura.setViewportView(panelEscritura);		
+		// PRIMERO: agregar el JScrollPane al JFrame
+		ven.getContentPane().add(scrollEscritura);			
+		// FORZAR EL LAYOUT
+		ven.validate();
 		//-----------------------------------------------------------------
 		//SEPARADOR FIJO
 		Component horizontalStrut = Box.createHorizontalStrut(altBtn);
@@ -390,17 +396,13 @@ public class Main extends JFrame {
 		
 		ven.validate();
 		
-		d = scrollLectura.getViewport().getExtentSize();
-		Rectangle bounds = scrollLectura.getBounds();
+		rectSE = scrollLectura.getViewport().getBounds();
 		
-		System.out.println("Viewport Lectura: " + d);
-		System.out.println("Viewport Lectura (Bounds): " + bounds + "\n\n");
 		//Se llena todo el espacio interno de JScrollPane con el JPanel
-		panelLectura.setBounds(0, 0, d.width, d.height);
+		panelLectura.setBounds(0, 0, rectSE.width, rectSE.height);
 		
 		//-----------------------------------------------------------------
 		//ETIQUETAS LECTURA
-		bounds = panelLectura.getBounds();
 		
 		lblPanelLectura.setName("lblPanelLectura");
 		lblPanelLectura.setText("Aquí abajo se mostrará la información sobre los archivos");
@@ -422,7 +424,6 @@ public class Main extends JFrame {
 		lblCargarCer.setFont(fteTextos);
 		lblCargarCer.setBounds(680, altGenInit, ancLblPanelLectura, altLbl);
 		
-		System.err.println(lblCargarCer.getBounds());
 		
 		posY_LblPanelLectura = lblCargarCer.getY() + lblCargarCer.getHeight();
 		btnCargarCer.setText("cargar");
@@ -430,39 +431,38 @@ public class Main extends JFrame {
 		btnCargarCer.addActionListener(eventos);
 		btnCargarCer.setBounds(680, posY_LblPanelLectura, 84, altBtn);
 		
-		System.err.println(btnCargarCer.getBounds());
 		
 		posY_LblPanelLectura = btnCargarCer.getY() + btnCargarCer.getHeight();
 		txtCargarCer.setText("seleccione un archivo");
 		txtCargarCer.setForeground(Color.GRAY);
 		txtCargarCer.setBackground(Color.WHITE);
 		txtCargarCer.setFont(fteTextos);
-		//infoFuente(txtCargarCer.getFont());
 		txtCargarCer.setEnabled(true);
 		txtCargarCer.setEditable(false);// Evita que el usuario escriba
 		txtCargarCer.setBorder(null); // Quita el borde de caja de texto
 		txtCargarCer.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCargarCer.setFocusable(true);// Permite que el usuario haga clic para seleccionar
 		txtCargarCer.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);
-		
-		System.err.println(txtCargarCer.getBounds());
+				
 		
 		//-----------------------------------------------------------------
 		
 		posY_LblPanelLectura = txtCargarCer.getY() + txtCargarCer.getHeight();
 		posY_LblPanelLectura += (altGenInit);		
-		System.err.println(posY_LblPanelLectura);
+		
 		
 		lblCargarPubk.setText("Cargar Public Key");
 		lblCargarPubk.setFont(fteTextos);
 		lblCargarPubk.setForeground(Color.BLACK);
 		lblCargarPubk.setBounds(680, posY_LblPanelLectura, ancLblPanelLectura, altLbl);//110
 		
+		
 		posY_LblPanelLectura = lblCargarPubk.getY() + lblCargarPubk.getHeight();
 		btnCargarPubk.setText("cargar");
 		btnCargarPubk.setName("btnCargarPubk");
 		btnCargarPubk.addActionListener(eventos);
 		btnCargarPubk.setBounds(680, posY_LblPanelLectura, 84, altBtn);//130
+		
 		
 		posY_LblPanelLectura = btnCargarPubk.getY() + btnCargarPubk.getHeight();
 		txtCargarPubk.setText("seleccione un archivo");
@@ -475,16 +475,20 @@ public class Main extends JFrame {
 		txtCargarPubk.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCargarPubk.setFocusable(true);// Permite que el usuario haga clic para seleccionar
 		txtCargarPubk.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);//155
+		
+		
 		//-----------------------------------------------------------------
 		
+		
 		posY_LblPanelLectura = txtCargarPubk.getY() + txtCargarPubk.getHeight();
-		posY_LblPanelLectura += (altGenInit);		
-		System.err.println(posY_LblPanelLectura);
+		posY_LblPanelLectura += (altGenInit);
+		
 		
 		lblCargarPrik.setText("Cargar Private Key");
 		lblCargarPrik.setForeground(Color.BLACK);
 		lblCargarPrik.setFont(fteTextos);
 		lblCargarPrik.setBounds(680, posY_LblPanelLectura, ancLblPanelLectura, altLbl);//210
+		
 		
 		posY_LblPanelLectura = lblCargarPrik.getY() + lblCargarPrik.getHeight();
 		btnCargarPrik.setText("cargar");
@@ -492,6 +496,7 @@ public class Main extends JFrame {
 		btnCargarPrik.addActionListener(eventos);
 		btnCargarPrik.setBounds(680, posY_LblPanelLectura,  84, altBtn);//230
 
+		
 		posY_LblPanelLectura = btnCargarPrik.getY() +btnCargarPrik.getHeight();
 		txtCargarPrik.setText("seleccione un archivo");
 		txtCargarPrik.setForeground(Color.GRAY);
@@ -504,16 +509,17 @@ public class Main extends JFrame {
 		txtCargarPrik.setFocusable(true);// Permite que el usuario haga clic para seleccionar
 		txtCargarPrik.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);//255
 		
+		
 		//-----------------------------------------------------------------
 		posY_LblPanelLectura = txtCargarPrik.getY() + txtCargarPrik.getHeight();
-		posY_LblPanelLectura += (altGenInit * 2);		
-		System.err.println(posY_LblPanelLectura);
+		posY_LblPanelLectura += (altGenInit * 2);
+		
 		
 		btnAnalizar.setText("Analizar");
-		btnAnalizar.setName("btnAnalizar");
-		//btnAnalizar.addActionListener(e -> null);
+		btnAnalizar.setName("btnAnalizar");		
 		btnAnalizar.addActionListener(eventos);
 		btnAnalizar.setBounds(680, posY_LblPanelLectura, 160, altBtn);//300
+		
 		
 		panelLectura.add(lblPanelLectura);
 		panelLectura.add(txA_Lectura);
@@ -527,8 +533,10 @@ public class Main extends JFrame {
 		panelLectura.add(btnCargarPrik);
 		panelLectura.add(txtCargarPrik);
 		panelLectura.add(btnAnalizar);
+		
 		//-----------------------------------------------------------------
 		//DATOS DEL JMENUBAR
+		
 		JMenuBar menuBar = new JMenuBar();
 		menuBar.setName("menuBar");
 		
@@ -546,20 +554,8 @@ public class Main extends JFrame {
 		
 		//ven.setJMenuBar(menuBar);
 		
-		System.out.println(""
-			+ "JFrame: " + ven.getBounds()
-			+ "\nJMenuBar size: " + menuBar.getBounds()
-		    + "\nContentPane: "
-		    + ven.getContentPane().getBounds()
-		    + "\nInsets: " + ven.getInsets() 
-		    + "\n\nScrollPane arriba: " 
-		    + ven.getContentPane().getComponents()[0].getBounds()
-		    + "\nScrollPane abajo: " 
-		    + ven.getContentPane().getComponents()[2].getBounds()
-		);
-		System.out.println();
-		
 		//infoSize(ven.getContentPane().getComponents());
+		//infoVentanaMenuBar(ven, menuBar);
 	}
 	
 	private void infoFuente(Font fuente) {
@@ -605,6 +601,22 @@ public class Main extends JFrame {
 			    + "\n\n" 
 			);
 		}
+	}
+	
+	private void infoVentanaMenuBar(JFrame ven, JMenuBar menuBar) {
+		
+		System.out.println(""
+				+ "JFrame: " + ven.getBounds()
+				+ "\nJMenuBar size: " + menuBar.getBounds()
+			    + "\nContentPane: "
+			    + ven.getContentPane().getBounds()
+			    + "\nInsets: " + ven.getInsets() 
+			    + "\n\nScrollPane arriba: " 
+			    + ven.getContentPane().getComponents()[0].getBounds()
+			    + "\nScrollPane abajo: " 
+			    + ven.getContentPane().getComponents()[2].getBounds()
+			);
+			System.out.println();
 	}
 
 
