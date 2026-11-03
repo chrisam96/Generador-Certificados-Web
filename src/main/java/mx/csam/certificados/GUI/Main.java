@@ -71,63 +71,41 @@ public class Main extends JFrame {
 	public File arch_cert = null;
 	public File arch_prik = null;
 	public File arch_pubk = null;	
-	
-	/*
-	 * JFrame: 600x400
-	 * ContentPane: 586x340
-	 * size:java.awt.Dimension[width=600,height=400]
-	 * size ContentPane:java.awt.Dimension[width=586,height=340]
-	 * Insets: java.awt.Insets[top=30,left=7,bottom=7,right=7]
-	 * JMenuBar = 400 - 7 bottom - 30 top - 340 ContentPane = 23 height
-	 * 
-	 * Ambos bordes del JFrame descuentan 14
-	 */	
-	
-	//TAMAÑOS
-	///DIMENSIONES
-	//JFrame
-	static int wJFrame = 1150;
-	static int hJFrame = 700;
-	
-	//Content Pane
-	private int wContentPane = 1136;
-	private int hContentPane = 663;
 
+	//TAMAÑOS
+	
+	//JFrame
+	private static int wJFrame = 1150;
+	private static int hJFrame = 700;
+	
+	//Separador
+	private final int separador = 10;
+
+	//Posiciones de los bordes
+	private final int posInitIzq = 0;
+	private final int posInitSup = 0;
+	
+	//ScrollEscritura
+	int altScrollEsc = 160;
+
+	//ScrollLectura
+	int altScrollLec = hJFrame - altScrollEsc - separador ;		
+	int posY_elemScrollLec = altScrollEsc + separador;		
+
+	//JPanel Lectura
+	private int ancPanelLectura = 1350;
+	private int altPanelLectura = 700;
+	
+	//JTextArea
 	private int ancTxtArea = 640;
 	private int altTxtArea = 440;
 	
-	private int ancPanelLectura = 1350;
-	private int altPanelLectura = 700;
-		
+	private int posY_LblPanelLectura = -1;
+	
 	private int ancLblPanelLectura = 140;
 	private int ancTxtPanelLectura = 650;
 	
-	private int posY_LblPanelLectura = 0;
-	//Bordes JFrame
-	
-	/*
-	final int bordes = 7;
-	final int bordeSup = 30;
-	final int hJMenuBar = 23;
-	final int h_Scroll_Hor = 23;
-	*/	
-	
-	//Posiciones de los bordes
-	final int posInitIzq = 0;
-	final int posInitSup = 0;
-	
-	//ScrollEscritura
-	//int ancScrollEsc = wContentPane;
-	int altScrollEsc = 160;
 
-	//Separador
-	final int separador = 10;
-	
-	//ScrollLectura
-	//int ancScrollLec = wContentPane;
-	int altScrollLec = hContentPane - altScrollEsc - separador ;
-	int posY_hScrollLec = hContentPane - altScrollLec;		
-	
 	//TAMAÑOS AUXILIARES
 	private int altTxt = 25; 
 	private int altLbl = 20; 
@@ -158,11 +136,7 @@ public class Main extends JFrame {
 	Color colTxt = Color.BLACK;
 	Color colAux = Color.GRAY;
 	
-	
-	static {
-		
-	}
-	
+
 	/**
 	 * Launch the application.
 	 */
@@ -191,6 +165,7 @@ public class Main extends JFrame {
 	 */
 	private void initialize() {
 		
+		//-----------------------------------------------------------------
 		//DATOS DE JFRAME
 		ven =  new JFrame();
 		ven.setName("ven");
@@ -198,7 +173,8 @@ public class Main extends JFrame {
 		ven.setBounds(new Rectangle(100, 100, wJFrame, hJFrame));		
 		//Forzar la visualización (para obtener las medidas del ContentPane)
 		ven.setVisible(true);
-		ven.addNotify();		
+		ven.addNotify();
+		ven.validate();
 		//-----------------------------------------------------------------
 		ven.setResizable(false);
 		ven.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -207,11 +183,12 @@ public class Main extends JFrame {
 		//Aparecer en el Centro 
 		ven.setLocationRelativeTo(null);		
 
+		//-----------------------------------------------------------------
+		//DATOS DE JFRAME
 		//Gestor de eventos
 		Eventos eventos = new Eventos(this);
 		
 		Rectangle rVen = ven.getContentPane().getBounds();
-		System.err.println("Rectangle JDialog " + rVen);
 		
 		/*NOTAS:
 		 * >> Contenedores internos de los componentes:
@@ -244,20 +221,7 @@ public class Main extends JFrame {
 		 * */
 		
 		//-----------------------------------------------------------------
-
-		//-----------------------------------------------------------------
-		
-		
-		
-		//>> MEDIDAS DE LOS CONTENEDORES INTERNOS DEL JSCROLLPANE (scrollEscritura) 
-		
-
-		
-		
-		//-----------------------------------------------------------------
-		//ETIQUETAS DE LOS NOMBRES DE LOS ARCHIVOS CREADOS
-		
-		
+		//DATOS DE LOS ELEMENTOS DE panelNomsArchivos
 		lblPanelNomArchivos.setName("lblPanelNomArchivos");
 		lblPanelNomArchivos.setText("Oprima el botón \"Generar\" y rellene el formulario para crear el Certificado .cer y las keys correspondientes");
 		lblPanelNomArchivos.setFont(fteTextos);
@@ -301,7 +265,8 @@ public class Main extends JFrame {
 		panelNomsArchivos = new JPanel();
 		panelNomsArchivos.setName("panelEscritura");
 		panelNomsArchivos.setLayout(null);
-		panelNomsArchivos.setBackground(new Color(128, 255, 128));		
+		//panelNomsArchivos.setBackground(new Color(128, 255, 128));		
+		panelNomsArchivos.setBorder(new TitledBorder(null, "", TitledBorder.LEADING, TitledBorder.TOP, fteTitulos, colTitulos));	
 		
 		panelNomsArchivos.add(lblPanelNomArchivos);
 		panelNomsArchivos.add(txtCerti);
@@ -341,68 +306,38 @@ public class Main extends JFrame {
 		 * y la pantalla se mueve con esa acción*/ 
 		//scrollEscritura.setAutoscrolls(false); 
 		scrollEscritura.setViewportBorder(new TitledBorder(null, "Escritura", TitledBorder.LEADING, TitledBorder.TOP, fteTitulos, colTitulos));
-	
-		scrollEscritura.setBounds(posInitIzq, posInitSup, rVen.width, altScrollEsc);
 		
-		// AHORA sí: obtener el espacio real del viewport
-		Rectangle rectSE = scrollEscritura.getBounds();
-		System.out.println("Viewport: " + rectSE);
-		
+		//-----------------------------------------------------------------
+		//MEDIDAS DE LOS PANELES Y ENCAPSULAMIENTO GRAFICO DE 
+		// panelNomsArchivos > panelEscritura
+		// > scrollEscritura >  ven (JFrame)
 		
 		panelNomsArchivos.setBounds(
-			0, 0, 
-			(int) (rectSE.width * (4.0/5.0)),			
-			(int) (rectSE.height)
+			0, 0, 			
+			(int) (rVen.width * (4.0/5.0)),
+			(int) (altScrollEsc)
 		);
-		//Se llena todo el espacio interno de JScrollPane con el JPaznel
-		panelEscritura.setBounds(0, 0, rectSE.width, rectSE.height);
-		panelEscritura.validate();
 		
+		panelEscritura.setBounds(0, 0, rVen.width, altScrollEsc);
+					
+		//Se llena todo el espacio interno de JScrollPane con el JPanel
+		scrollEscritura.setBounds(0, 0, rVen.width, altScrollEsc);
+		scrollEscritura.setViewportView(panelEscritura);
 		
-		
-		scrollEscritura.setBounds(posInitIzq, posInitSup, rVen.width, altScrollEsc);
-		scrollEscritura.setViewportView(panelEscritura);		
 		// PRIMERO: agregar el JScrollPane al JFrame
 		ven.getContentPane().add(scrollEscritura);			
 		// FORZAR EL LAYOUT
 		ven.validate();
+		
 		//-----------------------------------------------------------------
 		//SEPARADOR FIJO
 		Component horizontalStrut = Box.createHorizontalStrut(altBtn);
 		horizontalStrut.setName("horizontalStrut");
-		horizontalStrut.setBounds(posInitIzq, altScrollEsc, wContentPane, separador);
+		horizontalStrut.setBounds(posInitIzq, altScrollEsc, rVen.width, separador);
 		ven.getContentPane().add(horizontalStrut);
 
-		
 		//-----------------------------------------------------------------
-		//DATOS JPANEL LECTURA
-		panelLectura = new JPanel();
-		panelLectura.setName("panelLectura");		
-		panelLectura.setLayout(null);
-		//Con esto se fuerza a que aparezcan los scrollbars
-		panelLectura.setPreferredSize(new Dimension(ancPanelLectura, altPanelLectura));
-				
-		
-		//-----------------------------------------------------------------
-		//DATOS JSCROLLPANE LECTURA		
-		scrollLectura.setName("scrollPaneLectura");
-		scrollLectura.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		scrollLectura.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		//scrollLectura.setAutoscrolls(true); 
-		scrollLectura.setViewportBorder(new TitledBorder(null, "Lectura", TitledBorder.LEADING, TitledBorder.TOP, fteTitulos, colTitulos));
-		scrollLectura.setViewportView(panelLectura);
-		scrollLectura.setBounds(new Rectangle(posInitIzq, posY_hScrollLec, rVen.width, altScrollLec));
-		ven.getContentPane().add(scrollLectura);
-		
-		ven.validate();
-		
-		rectSE = scrollLectura.getViewport().getBounds();
-		
-		//Se llena todo el espacio interno de JScrollPane con el JPanel
-		panelLectura.setBounds(0, 0, rectSE.width, rectSE.height);
-		
-		//-----------------------------------------------------------------
-		//ETIQUETAS LECTURA
+		//DATOS DE LOS COMPONENTES DEL panelLectura
 		
 		lblPanelLectura.setName("lblPanelLectura");
 		lblPanelLectura.setText("Aquí abajo se mostrará la información sobre los archivos");
@@ -413,7 +348,7 @@ public class Main extends JFrame {
 				
 		txA_Lectura.setEditable(false);
 		txA_Lectura.setEnabled(true);
-		txA_Lectura.setText("Sexo");
+		//txA_Lectura.setText("Sexo");
 		txA_Lectura.setFont(fteTextos);
 		txA_Lectura.setBounds(10, 40 , ancTxtArea, altTxtArea);
 		
@@ -521,6 +456,12 @@ public class Main extends JFrame {
 		btnAnalizar.setBounds(680, posY_LblPanelLectura, 160, altBtn);//300
 		
 		
+		//-----------------------------------------------------------------
+		//DATOS JPANEL LECTURA
+		panelLectura = new JPanel();
+		panelLectura.setName("panelLectura");		
+		panelLectura.setLayout(null);
+		
 		panelLectura.add(lblPanelLectura);
 		panelLectura.add(txA_Lectura);
 		panelLectura.add(lblCargarCer);
@@ -534,6 +475,38 @@ public class Main extends JFrame {
 		panelLectura.add(txtCargarPrik);
 		panelLectura.add(btnAnalizar);
 		
+		//panelLectura.setBounds(0,0, rVen.width, 500);
+		//Con esto se fuerza a que aparezcan los scrollbars
+		//System.err.println("panelLectura.setPreferredSize(): " + panelLectura.getBounds());
+		
+		//-----------------------------------------------------------------
+		//DATOS JSCROLLPANE LECTURA		
+		scrollLectura.setName("scrollPaneLectura");
+		scrollLectura.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+		scrollLectura.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		scrollLectura.setViewportBorder(new TitledBorder(null, "Lectura", TitledBorder.LEADING, TitledBorder.TOP, fteTitulos, colTitulos));				
+		
+		//panelLectura.setBounds(0, 0, rectSE.width, rectSE.height);
+
+		//-----------------------------------------------------------------
+		//MEDIDAS DE LOS PANELES Y ENCAPSULAMIENTO GRAFICO DE 
+		// panelLectura > scrollLectura >  ven (JFrame)
+		panelLectura.setPreferredSize(new Dimension(ancPanelLectura, altPanelLectura));
+		scrollLectura.setBounds(
+			new Rectangle(
+				0, 
+				posY_elemScrollLec, 
+				rVen.width, 
+				//altScrollLec - ven.getInsets().bottom - ven.getInsets().top
+				//(int) rVen.getHeight() - altScrollEsc 
+				(int) rVen.getHeight() - posY_elemScrollLec 
+			)
+		);
+		scrollLectura.setViewportView(panelLectura);		
+		
+		ven.getContentPane().add(scrollLectura);
+		scrollLectura.validate();
+		ven.validate();
 		//-----------------------------------------------------------------
 		//DATOS DEL JMENUBAR
 		
@@ -557,7 +530,8 @@ public class Main extends JFrame {
 		//infoSize(ven.getContentPane().getComponents());
 		//infoVentanaMenuBar(ven, menuBar);
 	}
-	
+
+	@Deprecated
 	private void infoFuente(Font fuente) {
 		System.out.println("\n" + fuente);
 		System.out.println("Tamaño Fuente: " + fuente.getSize()
@@ -570,6 +544,7 @@ public class Main extends JFrame {
 		);
 	}
 
+	@Deprecated
 	private void infoSize(Component[] cm) {
 		System.out.println(
 			    "Components.size: "
@@ -603,6 +578,7 @@ public class Main extends JFrame {
 		}
 	}
 	
+	@Deprecated
 	private void infoVentanaMenuBar(JFrame ven, JMenuBar menuBar) {
 		
 		System.out.println(""
@@ -619,13 +595,13 @@ public class Main extends JFrame {
 			System.out.println();
 	}
 
-
+	@Deprecated
 	private int getTamanioAncho(Component c) {
 		double d = c.getSize().width;
 		
 		int i = (int) Math.ceil(d / 5.0) * 5;
 		//i += 5;
-		System.out.println(c.getName() + "-TamAnch: " + i);
+		System.out.println(c.getName() + "- Tamaño del Ancho del Componente: " + i);
 		
 		return i;
 	}
@@ -635,7 +611,7 @@ public class Main extends JFrame {
 		
 		int i = (int) Math.ceil(d / 5.0) * 5;
 		i += 10;
-		System.out.println(c.getName() + "-TamAnchTexto: " + i);
+		System.out.println(c.getName() + "- Tamaño del Ancho del Texto: " + i);
 		
 		return i;
 	}
@@ -646,7 +622,7 @@ public class Main extends JFrame {
 		
 		int i = (int) Math.ceil(d / 5.0) * 5;
 		//i += 5;
-		System.out.println(c.getName() + "-PosAnch: " + i);
+		System.out.println(c.getName() + "- Posición X Límite del Ancho del Componente: " + i);
 		
 		return i;
 	}
@@ -657,7 +633,7 @@ public class Main extends JFrame {
 		
 		int i = (int) Math.ceil(d / 5.0) * 5;
 		//i += 5;
-		System.out.println(c.getName() + "-PosAlto: " + i);
+		System.out.println(c.getName() + "- Posición Y Límite del Alto del Componente: " + i);
 		
 		return i;
 	}
@@ -665,7 +641,6 @@ public class Main extends JFrame {
 	
 	private class Eventos implements ActionListener{
 
-		//private JFrame jF = null;
 		private Main main = null;
 		
 		public Eventos(Main jFrame) {

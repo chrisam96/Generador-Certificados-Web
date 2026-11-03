@@ -1169,25 +1169,24 @@ public class WriteFormulario /*extends JDialog*/ {
 		content.add(fDatosCifrado);
 		content.add(fCodifArch);
 		content.add(fBotones);
-				
+		/*Rectangle rect = dia.getContentPane().getBounds();
+		System.out.println("Rectangle JDialog " + rect);*/
 		
+		//Rectangle rect = dia.getContentPane().getBounds();
 		// > DIMENSIONES DEL CONTENT JPanel 
 		//dimensiones del Espacio interno del ScrollPane
 		content.setBounds(0, 0, rect.width, 1000);
 		//Con esto se fuerza a que aparezcan los scrollbars
 		content.setPreferredSize(new Dimension(rect.width, 1400));		
-		
-		
+				
 		//dimensiones del ScrollPane
 		scroll.setBounds(0, 0, rect.width, rect.height);
 		//agregar el panel al scroll
 		scroll.setViewportView(content);
-		
-		
+				
 		//agregar el scroll al JDialog
 		dia.getContentPane().add(scroll);
-		
-		
+				
 		content.validate();
 		scroll.validate();
 		dia.validate();
@@ -1200,7 +1199,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		
 		int i = (int) Math.ceil(d / 5.0) * 5;
 		i += 10;
-		System.out.println(c.getName() + "-TamAnchTexto: " + i);
+		System.out.println(c.getName() + "- Tamaño del Ancho del Texto: " + i);
 		
 		return i;
 	}
@@ -1210,7 +1209,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		
 		int i = (int) Math.ceil(d / 5.0) * 5;
 		//i += 5;
-		System.out.println(c.getName() + "-TamAnch: " + i);
+		System.out.println(c.getName() + "- Tamaño del Ancho del Componente: " + i);
 		
 		return i;
 	}
@@ -1221,7 +1220,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		
 		int i = (int) Math.ceil(d / 5.0) * 5;
 		//i += 5;
-		System.out.println(c.getName() + "-PosAnch: " + i);
+		System.out.println(c.getName() + "- Posición X Límite del Componente: " + i);
 		
 		return i;
 	}
@@ -1232,7 +1231,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		
 		int i = (int) Math.ceil(d / 5.0) * 5;
 		//i += 5;
-		System.out.println(c.getName() + "-PosAlto: " + i);
+		System.out.println(c.getName() + "- Posición Y Límite del Alto del Componente: " + i);
 		
 		return i;
 	}
@@ -1241,12 +1240,13 @@ public class WriteFormulario /*extends JDialog*/ {
 
 		//private JDialog jDialog = null;
 		private WriteFormulario jD = null;
+		private final Map<String, LinkedHashMap<String, List<String>>> lista =
+				CertificadosUtils.listaParametrosKPG();
 		
 		/*public <T extends JFrame> ButtonActionListener(T t){
 			
 		}*/
 		
-		//public ButtonActionListener(JDialog jd) {
 		public Eventos(WriteFormulario jDialog) {
 			this.jD = jDialog;
 		}
@@ -1271,8 +1271,8 @@ public class WriteFormulario /*extends JDialog*/ {
 				/*RECUPERA LAS LISTAS DE LOS PARAMETROS DE c/ALGORITMO 
 				 *  CertificadosUtils.listaParametrosKPG()*/
 				
-				Map<String, LinkedHashMap<String, List<String>>> lista =
-					CertificadosUtils.listaParametrosKPG();
+				/*Map<String, LinkedHashMap<String, List<String>>> lista =
+					CertificadosUtils.listaParametrosKPG();*/
 							    
 			    LinkedHashMap<String, List<String>> params = lista.get(algoritmo);
 			    
@@ -1287,7 +1287,7 @@ public class WriteFormulario /*extends JDialog*/ {
 			    /*CARGAR DATOS A cobDatosKPG 
 			     * SIN CONSERVAR LA SELECCION ANTERIOR */			    
 			    jD.cobDatosKPG.setModel(
-	    		new DefaultComboBoxModel<String>(
+			    	new DefaultComboBoxModel<String>(
 	    				arreglo
     				)
 	    		);
@@ -1299,13 +1299,11 @@ public class WriteFormulario /*extends JDialog*/ {
 					jD.lblDatosKPG2.setEnabled(true);
 					jD.txtDatosKPG.setEnabled(true);
 					jD.txtDatosKPG.setBackground(Color.WHITE);
-					System.out.println("AJAJAJAAJ");
 				}else {
 					jD.lblDatosKPG2.setEnabled(false);
 					jD.txtDatosKPG.setEnabled(false);
 					jD.txtDatosKPG.setBackground(Color.DARK_GRAY);
 					jD.txtDatosKPG.setText("");
-					System.out.println("xdxdxdxdxdxdxdxdxdxd");
 				}
 			}
 			
@@ -1326,8 +1324,8 @@ public class WriteFormulario /*extends JDialog*/ {
 				/*RECUPERA LAS LISTAS DE LOS PARAMETROS DE c/ALGORITMO 
 				 *EN  CertificadosUtils.listaParametrosKPG()*/
 				
-				Map<String, LinkedHashMap<String, List<String>>> lista =
-						CertificadosUtils.listaParametrosKPG();
+				/*Map<String, LinkedHashMap<String, List<String>>> lista =
+						CertificadosUtils.listaParametrosKPG();*/
 				
 				String algoritmo = (String) jD.cobAlg.getSelectedItem();				
 				LinkedHashMap<String, List<String>> param_1 = lista.get(algoritmo);
@@ -1433,16 +1431,11 @@ public class WriteFormulario /*extends JDialog*/ {
 		public void itemStateChanged(ItemEvent e) {
 			
 			if (e.getSource() == jD.chbDNemisor) {
-				
-				/*System.out.println();
-				System.out.println("isSelected(): " + jD.chbDNemisor.isSelected());
-				System.out.println("getStateChange(): " + (e.getStateChange() == ItemEvent.SELECTED));
-				System.out.println("gsC: " + e.getStateChange());
-				System.out.println();*/
-				 jD.chbDNemisor.isSelected();
+
+				 System.out.println("isSelected(): " + jD.chbDNemisor.isSelected());
 				/*
-				 * Si casilla esta desmarcada -> false
-				 * Si casilla esta Marcada -> true
+				 * Si casilla esta desmarcada(DESELECTED) -> false
+				 * Si casilla esta Marcada(SELECTED) -> true
 				 * 
 				 * Si esta desmarcada -> Habilitar los JTextFields
 				 * Si esta Marcada -> Bloquear los JTextFields
@@ -1524,23 +1517,25 @@ public class WriteFormulario /*extends JDialog*/ {
 		
 	}
 	
+	@Deprecated
 	private class ComboBoxListener implements java.awt.event.ActionListener{
 
 		private JTextField auxTxt = null;;
-		private JComboBox<String> auxComB = null;;
+		private JComboBox<String> auxComB_B = null;;
 		private JCheckBox auxCheB = null;;
 		private JLabel auxLbl = null;
 		private Object aux = null;
 		
-		private JComboBox Bsender = null;
+		private JComboBox auxComB_A = null;
 		
-		public ComboBoxListener(JComboBox sender, Component A) {
-			switch(A) {
+		public ComboBoxListener(JComboBox sender, Component compDependiente) {
+			this.auxComB_A = sender;
+			switch(compDependiente) {
 				case JTextField t -> {
 					auxTxt = t;
 				}
 				case JComboBox t -> {
-					auxComB = t;
+					auxComB_B = t;
 				}
 				case JCheckBox t -> {
 					auxCheB = t;
@@ -1550,11 +1545,9 @@ public class WriteFormulario /*extends JDialog*/ {
 				}
 				default -> {
 					aux = null;
-					System.out.println("A no existe como componente");
+					System.out.println("A no es indentificable o no existe como componente");
 				}
 			}
-			//auxTxt = (JTextField) c;
-			this.Bsender = sender;
 		}
 		
 		@Override
@@ -1573,7 +1566,7 @@ public class WriteFormulario /*extends JDialog*/ {
 						JOptionPane.ERROR_MESSAGE
 					);
 				}*/
-				auxTxt.setText(Bsender.getSelectedItem().toString());
+				auxTxt.setText(auxComB_A.getSelectedItem().toString());
 			}
 			else if(e.getSource() == cobCerOrCsr) {
 				/*if(Bsender.getSelectedIndex() == -1) {				
@@ -1584,14 +1577,13 @@ public class WriteFormulario /*extends JDialog*/ {
 						JOptionPane.ERROR_MESSAGE
 					);
 				}*/
-				if(Bsender.getSelectedIndex() == -1) {
+				if(auxComB_A.getSelectedIndex() == -1) {
 					System.out.println("Nada");
 				}				
-				else if(Bsender.getSelectedIndex() == -1) {}				
-				else if(Bsender.getSelectedIndex() == -1) {}				
+				else if(auxComB_A.getSelectedIndex() == -1) {}				
 				
-				auxTxt.setText(Bsender.getSelectedItem().toString());
-				System.out.println(Bsender.getSelectedItem().toString());
+				auxTxt.setText(auxComB_A.getSelectedItem().toString());
+				System.out.println(auxComB_A.getSelectedItem().toString());
 			}
 		}
 		
