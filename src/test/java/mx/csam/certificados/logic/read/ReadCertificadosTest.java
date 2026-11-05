@@ -268,8 +268,8 @@ class ReadCertificadosTest {
 		    	"Ruta: " + arch.getAbsolutePath() + "\n" +
 		    	"Nom: " + arch.getName() + "\n" +
 		    	"Codif: " + codif + "\n" +
-		    	"Clave pública: " + pk.getFormat() + "\n" +
-		    	"Algoritmo de clave pública: "
+		    	"Clave privada: " + pk.getFormat() + "\n" +
+		    	"Algoritmo de clave privada: "
 		    		+ pk.getAlgorithm() + "\n" 
 		    );
 			
@@ -296,8 +296,8 @@ class ReadCertificadosTest {
 					"Ruta: " + arch.getAbsolutePath() + "\n" +
 					"Nom: " + arch.getName() + "\n" +
 					"Codif: " + codif + "\n" +
-					"Clave pública: " + pk.getFormat() + "\n" +
-					"Algoritmo de clave pública: "
+					"Clave privada: " + pk.getFormat() + "\n" +
+					"Algoritmo de clave privada: "
 					+ pk.getAlgorithm() + "\n" 
 					);
 			
@@ -351,14 +351,14 @@ class ReadCertificadosTest {
 			
 			//Uso StringBuilder para no ahogar el pool String
 			StringBuilder msj = new StringBuilder(		        
-					//Datos de la Public Key
-					"Ruta: " + arch.getAbsolutePath() + "\n" +
-					"Nom: " + arch.getName() + "\n" +
-					"Codif: " + codif + "\n" +
-					"Clave privada: " + pk.getFormat() + "\n" +
-					"Algoritmo de clave privada: "
-					+ pk.getAlgorithm() + "\n" 
-					);
+				//Datos de la Public Key
+				"Ruta: " + arch.getAbsolutePath() + "\n" +
+				"Nom: " + arch.getName() + "\n" +
+				"Codif: " + codif + "\n" +
+				"Clave privada: " + pk.getFormat() + "\n" +
+				"Algoritmo de clave privada: "
+				+ pk.getAlgorithm() + "\n" 
+			);
 			
 			assertNotNull(pk);
 			
@@ -379,14 +379,14 @@ class ReadCertificadosTest {
 			
 			//Uso StringBuilder para no ahogar el pool String
 			msj = new StringBuilder(		        
-					//Datos de la Public Key
-					"Ruta: " + arch.getAbsolutePath() + "\n" +
-					"Nom: " + arch.getName() + "\n" +
-					"Codif: " + codif + "\n" +
-					"Clave privada: " + pk.getFormat() + "\n" +
-					"Algoritmo de clave privada: "
-					+ pk.getAlgorithm() + "\n" 
-					);
+				//Datos de la Public Key
+				"Ruta: " + arch.getAbsolutePath() + "\n" +
+				"Nom: " + arch.getName() + "\n" +
+				"Codif: " + codif + "\n" +
+				"Clave privada: " + pk.getFormat() + "\n" +
+				"Algoritmo de clave privada: "
+				+ pk.getAlgorithm() + "\n" 
+			);
 			
 			System.out.println("""								
 				====================================================

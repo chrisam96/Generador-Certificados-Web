@@ -9,6 +9,12 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
+import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.cert.CertificateException;
+import java.util.ArrayList;
 
 import javax.swing.Box;
 import javax.swing.JButton;
@@ -17,6 +23,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -24,6 +31,13 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import org.bouncycastle.openssl.PEMException;
+import org.bouncycastle.operator.OperatorCreationException;
+import org.bouncycastle.pkcs.PKCSException;
+
+import mx.csam.certificados.logic.read.ReadCertificados;
+import mx.csam.certificados.logic.write.WriteCertificados;
+import mx.csam.certificados.utilerias.RegistradorEventos;
 import mx.csam.certificados.utilerias.records.CertificadoWriteGUIRecord;
 
 public class Main extends JFrame {
@@ -65,12 +79,10 @@ public class Main extends JFrame {
 	private JLabel lblCargarPrik = new JLabel("");	
 	public JButton btnCargarPrik = new JButton("");
 	public final JTextField txtCargarPrik = new JTextField("");
+	private JLabel lblCargarPrik1 = new JLabel("");	
+	public final JTextField txtCargarPrik1 = new JTextField("");
 	
 	public JButton btnAnalizar = new JButton("");	
-	
-	public File arch_cert = null;
-	public File arch_prik = null;
-	public File arch_pubk = null;	
 
 	//TAMAÑOS
 	
@@ -136,7 +148,24 @@ public class Main extends JFrame {
 	Color colTxt = Color.BLACK;
 	Color colAux = Color.GRAY;
 	
-
+	//OBJETOS	
+	//Archivos
+	public File arch_cert = null;
+	public File arch_prik = null;
+	public File arch_pubk = null;	
+	
+	//Lógica
+	private ReadCertificados rc = new ReadCertificados();
+	private RegistradorEventos re = new RegistradorEventos();
+	private WriteCertificados wc = new WriteCertificados();
+	public CertificadoWriteGUIRecord rec = null;	
+	
+	//Lista de objetos recuperados del Certificados
+	ArrayList<Object> listaObjsCert = new ArrayList<Object>();
+	PrivateKey priv = null;
+	PublicKey pub = null;
+	String pass = null;
+	
 	/**
 	 * Launch the application.
 	 */
@@ -368,7 +397,7 @@ public class Main extends JFrame {
 		
 		
 		posY_LblPanelLectura = btnCargarCer.getY() + btnCargarCer.getHeight();
-		txtCargarCer.setText("seleccione un archivo");
+		txtCargarCer.setText("[Seleccione un archivo]");
 		txtCargarCer.setForeground(Color.GRAY);
 		txtCargarCer.setBackground(Color.WHITE);
 		txtCargarCer.setFont(fteTextos);
@@ -400,7 +429,7 @@ public class Main extends JFrame {
 		
 		
 		posY_LblPanelLectura = btnCargarPubk.getY() + btnCargarPubk.getHeight();
-		txtCargarPubk.setText("seleccione un archivo");
+		txtCargarPubk.setText("[Seleccione un archivo]");
 		txtCargarPubk.setForeground(Color.GRAY);
 		txtCargarPubk.setBackground(Color.WHITE);
 		txtCargarPubk.setFont(fteTextos);
@@ -425,15 +454,50 @@ public class Main extends JFrame {
 		lblCargarPrik.setBounds(680, posY_LblPanelLectura, ancLblPanelLectura, altLbl);//210
 		
 		
+		//JLabel y JTextField de la Contraseña (solo Encrypted Private Key)
 		posY_LblPanelLectura = lblCargarPrik.getY() + lblCargarPrik.getHeight();
+		
+		lblCargarPrik1.setName("lblCargarPrik1");
+		lblCargarPrik1.setText("(Opcional) Contraseña:");
+		lblCargarPrik1.setForeground(Color.GRAY);
+		lblCargarPrik1.setBackground(Color.WHITE);
+		lblCargarPrik1.setFont(fteTextos);
+		int anc_LblCargarPrik1 = getTamanioAnchoTexto(lblCargarPrik1);		
+		lblCargarPrik1.setBounds(
+			680,//posX_LblCargarPrik1 + spaceHor, 
+			posY_LblPanelLectura, 
+			anc_LblCargarPrik1, 
+			altLbl //210
+		);
+		
+		int posX_LblCargarPrik1 = getPosicionAncho(lblCargarPrik1);
+		
+		txtCargarPrik1.setText("txtCargarPrik1");
+		txtCargarPrik1.setText("");
+		txtCargarPrik1.setForeground(Color.GRAY);
+		txtCargarPrik1.setBackground(Color.WHITE);
+		txtCargarPrik1.setFont(fteTextos);			
+		txtCargarPrik1.setEnabled(true);
+		txtCargarPrik1.setEditable(true);
+		//txtCargarPrik1.setOpaque(true);// Hace el fondo transparente como un JLabel
+		//txtCargarPrik1.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtCargarPrik1.setBounds(
+			posX_LblCargarPrik1, 
+			posY_LblPanelLectura, 
+			210, 
+			altLbl //210
+		);
+		
+		//posY_LblPanelLectura = lblCargarPrik.getY() + lblCargarPrik.getHeight();
+		posY_LblPanelLectura = lblCargarPrik1.getY() + lblCargarPrik1.getHeight();
 		btnCargarPrik.setText("cargar");
 		btnCargarPrik.setName("btnCargarPrik");
 		btnCargarPrik.addActionListener(eventos);
-		btnCargarPrik.setBounds(680, posY_LblPanelLectura,  84, altBtn);//230
-
+		btnCargarPrik.setBounds(680, posY_LblPanelLectura,  84, altBtn);//230	
+		
 		
 		posY_LblPanelLectura = btnCargarPrik.getY() +btnCargarPrik.getHeight();
-		txtCargarPrik.setText("seleccione un archivo");
+		txtCargarPrik.setText("[Seleccione un archivo]");
 		txtCargarPrik.setForeground(Color.GRAY);
 		txtCargarPrik.setBackground(Color.WHITE);
 		txtCargarPrik.setFont(fteTextos);
@@ -450,10 +514,15 @@ public class Main extends JFrame {
 		posY_LblPanelLectura += (altGenInit * 2);
 		
 		
-		btnAnalizar.setText("Analizar");
+		btnAnalizar.setText(
+			"<html>" +
+			"Verificar la integridad " + 
+			"criptográfica de los archivos" +
+			"</html>"
+		);
 		btnAnalizar.setName("btnAnalizar");		
 		btnAnalizar.addActionListener(eventos);
-		btnAnalizar.setBounds(680, posY_LblPanelLectura, 160, altBtn);//300
+		btnAnalizar.setBounds(680, posY_LblPanelLectura, 360, (altBtn * 2));//300
 		
 		
 		//-----------------------------------------------------------------
@@ -473,6 +542,8 @@ public class Main extends JFrame {
 		panelLectura.add(lblCargarPrik);
 		panelLectura.add(btnCargarPrik);
 		panelLectura.add(txtCargarPrik);
+		panelLectura.add(lblCargarPrik1);
+		panelLectura.add(txtCargarPrik1);
 		panelLectura.add(btnAnalizar);
 		
 		//panelLectura.setBounds(0,0, rVen.width, 500);
@@ -671,7 +742,7 @@ public class Main extends JFrame {
 				fc.setMultiSelectionEnabled(false);
 				
 				//Desactiva la opción "Todos los archivos (*.*)" 
-		        fc.setAcceptAllFileFilterUsed(false);
+		        fc.setAcceptAllFileFilterUsed(true);
 				
 				//Muestra la ventana para abrir archivo
 				int resul = fc.showOpenDialog(main);
@@ -679,7 +750,26 @@ public class Main extends JFrame {
 				if(resul == JFileChooser.APPROVE_OPTION) {
 					//File arch = fc.getSelectedFile();
 					main.arch_cert = fc.getSelectedFile();
-					main.txtCargarCer.setText(arch_cert.getName());
+					
+					try {
+						listaObjsCert = rc.leerCertificado(fc.getSelectedFile().getAbsolutePath());
+						main.txtCargarCer.setText(main.arch_cert.getName());
+						
+					} catch (CertificateException | NoSuchProviderException | IOException ex) {
+						JOptionPane.showMessageDialog(
+							main.ven, 
+							ex.getMessage(),
+							"Aviso",
+							JOptionPane.ERROR_MESSAGE
+						);
+						
+						RegistradorEventos.registarExcepcionAlGUI("Lectura del Certificado", ex.getMessage());
+						main.txtCargarCer.setText("[Error al analizar el certificado]");					
+						ex.printStackTrace();
+					}
+					
+					main.txA_Lectura.setText(RegistradorEventos.getUltimoMsjToString());
+					return;
 				}else {
 					main.arch_cert = null;
 					main.txtCargarCer.setText("seleccione un archivo");					
@@ -687,7 +777,64 @@ public class Main extends JFrame {
 				
 			}
 
-			
+
+			if(e.getSource() == main.btnCargarPubk) {
+				JFileChooser fc = new JFileChooser();
+				
+				//Configurarlo en modo SOLO ARCHIVOS
+				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
+				
+				fc.setCurrentDirectory(new File("D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key"));
+				
+				//Configura las extensiones permitidas8
+				FileNameExtensionFilter filtro = new FileNameExtensionFilter("Public Key (.key/.pubkey)", "key","pubkey");
+				//FileNameExtensionFilter filtro2 = new FileNameExtensionFilter("Filtro 2 (.cer)", "cer");
+				
+				fc.addChoosableFileFilter(filtro);
+				//fc.addChoosableFileFilter(filtro2);
+				
+				//Establece el filtro predeterminado para JFileChooser
+				fc.setFileFilter(filtro);
+				
+				//Configura la selección múltiple de elementos a la vez
+				fc.setMultiSelectionEnabled(false);
+				
+				//Desactiva la opción "Todos los archivos (*.*)" 
+		        fc.setAcceptAllFileFilterUsed(true);
+				
+				//Muestra la ventana para abrir archivo
+				int resul = fc.showOpenDialog(main);
+				
+				if(resul == JFileChooser.APPROVE_OPTION) {
+					//File arch = fc.getSelectedFile();
+					main.arch_pubk = fc.getSelectedFile();
+					
+					try {
+						pub = rc.leerPublicKey(fc.getSelectedFile().getAbsolutePath());						
+						main.txtCargarPubk.setText(main.arch_pubk.getName());
+					
+					} catch (IOException | IllegalArgumentException ex) {
+						JOptionPane.showMessageDialog(
+							main.ven, 
+							ex.getMessage(),
+							"Aviso",
+							JOptionPane.ERROR_MESSAGE
+						);
+						
+						RegistradorEventos.registarExcepcionAlGUI("Lectura del Public Key", ex.getMessage());
+						main.txtCargarPubk.setText("[Error al analizar el archivo]");
+						ex.printStackTrace();
+					}	
+					
+					main.txA_Lectura.setText(RegistradorEventos.getUltimoMsjToString());
+					return;
+				}else {
+					main.arch_pubk = null;
+					main.txtCargarPubk.setText("[Seleccione un archivo]");					
+				}
+				
+			}
+
 			if(e.getSource() == main.btnCargarPrik) {
 				JFileChooser fc = new JFileChooser();
 				
@@ -710,7 +857,7 @@ public class Main extends JFrame {
 				fc.setMultiSelectionEnabled(false);
 				
 				//Desactiva la opción "Todos los archivos (*.*)" 
-		        fc.setAcceptAllFileFilterUsed(false);
+		        fc.setAcceptAllFileFilterUsed(true);//false
 				
 				//Muestra la ventana para abrir archivo
 				int resul = fc.showOpenDialog(main);
@@ -718,53 +865,72 @@ public class Main extends JFrame {
 				if(resul == JFileChooser.APPROVE_OPTION) {
 					//File arch = fc.getSelectedFile();
 					main.arch_prik = fc.getSelectedFile();
-					main.txtCargarPrik.setText(arch_prik.getName());
+					main.pass = txtCargarPrik1.getText();
+					try {
+						priv = rc.leerPrivateKey(fc.getSelectedFile().getAbsolutePath(), main.pass);
+						main.txtCargarPrik.setText(main.arch_prik.getName());
+					} catch (IOException | IllegalArgumentException | OperatorCreationException | PKCSException ex) {
+						JOptionPane.showMessageDialog(
+							main.ven, 
+							ex.getMessage(),
+							"Aviso",
+							JOptionPane.ERROR_MESSAGE
+						);
+						
+						RegistradorEventos.registarExcepcionAlGUI("Lectura de la Private Key", ex.getMessage());
+						main.txtCargarPrik.setText("[Error al analizar el archivo]");					
+						ex.printStackTrace();
+					}					 
+					main.txA_Lectura.setText(RegistradorEventos.getUltimoMsjToString());
+					return;
 				}else {
 					main.arch_prik = null;
-					main.txtCargarPrik.setText("seleccione un archivo");					
+					main.txtCargarPrik.setText("[Seleccione un archivo]");					
 				}
 				
 			}
 			
-			
-			if(e.getSource() == main.btnCargarPubk) {
-				JFileChooser fc = new JFileChooser();
-				
-				//Configurarlo en modo SOLO ARCHIVOS
-				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
-				
-				fc.setCurrentDirectory(new File("D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key"));
-				
-				//Configura las extensiones permitidas8
-				FileNameExtensionFilter filtro = new FileNameExtensionFilter("Public Key (.key/.pubkey)", "key","pubkey");
-				//FileNameExtensionFilter filtro2 = new FileNameExtensionFilter("Filtro 2 (.cer)", "cer");
-				
-				fc.addChoosableFileFilter(filtro);
-				//fc.addChoosableFileFilter(filtro2);
-				
-				//Establece el filtro predeterminado para JFileChooser
-				fc.setFileFilter(null);
-				
-				//Configura la selección múltiple de elementos a la vez
-				fc.setMultiSelectionEnabled(false);
-				
-				//Desactiva la opción "Todos los archivos (*.*)" 
-		        fc.setAcceptAllFileFilterUsed(false);
-				
-				//Muestra la ventana para abrir archivo
-				int resul = fc.showOpenDialog(main);
-				
-				if(resul == JFileChooser.APPROVE_OPTION) {
-					//File arch = fc.getSelectedFile();
-					main.arch_pubk = fc.getSelectedFile();
-					main.txtCargarPubk.setText(arch_pubk.getName());
-				}else {
-					main.arch_pubk = null;
-					main.txtCargarPubk.setText("seleccione un archivo");					
-				}
-				
+			if(e.getSource() == main.btnAnalizar) {
+				String certi = main.arch_cert != null ? main.arch_cert.getAbsolutePath() : null;
+				String priK = main.arch_prik != null ? main.arch_prik.getAbsolutePath() : null;
+				String pubK = main.arch_pubk != null ? main.arch_pubk.getAbsolutePath() : null;
+				String pass = main.pass; //main.pass = txtCargarPrik1.getText();
+				try {
+					listaObjsCert = rc.leerArchivos(certi, priK, pubK, pass);
+					JOptionPane.showMessageDialog(
+						main.ven, 
+						"<html>Los archivos son criptográficamente válidos entre sí.<br>"
+						+ "La integridad entre el certificado, la public key y private key "
+						+ "es correcta."
+						+ "</html>",
+						"Terminado",
+						JOptionPane.PLAIN_MESSAGE
+					);
+					main.txA_Lectura.setText("""
+					Los archivos son integros entre sí. 
+					Su validación criptográfica ha sido comprobada con éxito.
+					""".replaceAll("\t", ""));
+				} catch (IOException | IllegalArgumentException | OperatorCreationException | PKCSException | CertificateException | NoSuchProviderException ex) {
+					JOptionPane.showMessageDialog(
+						main.ven, 
+						ex.getMessage(),
+						"Aviso",
+						JOptionPane.ERROR_MESSAGE
+					);
+					
+					RegistradorEventos.registarExcepcionAlGUI("Validación criptográfica de los archivos", ex.getMessage());
+					main.txA_Lectura.setText("""
+					Falló la comprobación criptográfica entre los archivos.
+					Puede que no sean validos criptográficamente entre sí (es decir,
+					no corresponden entre ellos).
+					""");
+					ex.printStackTrace();
+				}					 
+				//main.txA_Lectura.setText(RegistradorEventos.getUltimoMsjToString());
+				return;
 			}
-
+			
+			
 
 		}
 		

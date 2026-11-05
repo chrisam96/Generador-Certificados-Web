@@ -41,35 +41,58 @@ import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
 
 import jakarta.annotation.Nullable;
+import mx.csam.certificados.utilerias.RegistradorEventos;
 import mx.csam.certificados.utilerias.constantes.CertificadosUtils;
 
 
 public class ReadCertificados {
 	
 	private Path pathGral = Path.of("");
+	private RegistradorEventos re = null;
 	
 	public ReadCertificados() {
-		
+		//re = new RegistradorEventos();
 	}
 	
 	public ArrayList<Object> leerArchivos(
 		String certiRuta, String privKRuta, String pubKRuta, @Nullable String passPK)
 		throws IllegalArgumentException, OperatorCreationException, IOException, 
-		PKCSException, CertificateException, NoSuchProviderException
+		PKCSException, CertificateException, NoSuchProviderException, PEMException
 	{	
+		
+		if (certiRuta == null || certiRuta.isBlank()) {
+			throw new IllegalArgumentException("""
+				El Certificado no puede estar vacia. "
+				Favor de seleccionar un archivo.
+			""");
+		}
+		
+		if (privKRuta == null || privKRuta.isBlank()) {
+			throw new IllegalArgumentException("""
+				La Private Key no puede estar vacia. "
+				Favor de seleccionar un archivo.
+			""");
+		}
+		
+		if (privKRuta == null || privKRuta.isBlank()) {
+			throw new IllegalArgumentException("""
+				La Public Key no puede estar vacia. "
+				Favor de seleccionar un archivo.
+			""");
+		}
 		
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
 		Security.addProvider(new BouncyCastleProvider());	
 		
 		// LECTURA DE ARCHIVOS
 		
-		//Lista de objetos recuperados del Certificados
-		ArrayList<Object> listaCert = new ArrayList<Object>();
+		//Lista de objetos recuperados del Certificado
+		ArrayList<Object> listaObjsCert = new ArrayList<Object>();
 		
 		//Se lee el certificado y se obtienen sus datos
 		X509Certificate certi = null;			
 		
-		/* El try-catch servirá para cuando no se evaluén
+		/* El try-catch servirá para cuando no se evaluen
 		 * todos los archivos, en este caso en particular,
 		 * cuando no se evalué eL Certificado.
 		 * 
@@ -88,8 +111,8 @@ public class ReadCertificados {
 		 * //11: PublicKey 
 		 * */
 		
-		listaCert = leerCertificado(certiRuta);
-		certi = (X509Certificate)(listaCert.get(0));
+		listaObjsCert = leerCertificado(certiRuta);
+		certi = (X509Certificate)(listaObjsCert.get(0));
 		
 		
 		/**
@@ -107,7 +130,8 @@ public class ReadCertificados {
 		 * B.a Se debe determinar si esta cifrado o no intermanente
 		 * para saber si se puede devolver directamente o descifrarlo
 		 * */
-		PrivateKey privk = leerPrivateKey(privKRuta, passPK);
+		PrivateKey privk = null;
+		privk = leerPrivateKey(privKRuta, passPK);
 		
 		//Lee la Public Key
 		PublicKey pubk = null;		
@@ -126,11 +150,11 @@ public class ReadCertificados {
 					+ "Certificado");
 		}
 		
-		System.out.println("algoritmo de firma" + (String)listaCert.get(1));
-		System.out.println("OID algoritmo de firma" + (String)listaCert.get(2));
+		System.out.println("algoritmo de firma" + (String)listaObjsCert.get(1));
+		System.out.println("OID algoritmo de firma" + (String)listaObjsCert.get(2));
 		
 		//Verificar q' PrivateKey corresponde a la PublicKey externa		
-		if(!validarParDeKeys(privk, pubk, (String)listaCert.get(1) ) ) {
+		if(!validarParDeKeys(privk, pubk, (String)listaObjsCert.get(1) ) ) {
 			throw new IllegalArgumentException("Las keys no corresponden entre sí");
 		}
 		
@@ -138,7 +162,7 @@ public class ReadCertificados {
 		PublicKey pubKCerti = certi.getPublicKey();
 		
 		//Verificar q' PrivateKey corresponde a la PublicKey Certificado
-		if(!validarParDeKeys(privk, pubKCerti, (String)listaCert.get(1) ) ) {
+		if(!validarParDeKeys(privk, pubKCerti, (String)listaObjsCert.get(1) ) ) {
 			throw new IllegalArgumentException("Las keys (del certificado) y private no corresponden entre sí");
 		}
 		
@@ -147,10 +171,10 @@ public class ReadCertificados {
 			throw new IllegalArgumentException("La firma del certificado  es diferente a la representada con la PublicKey externa");
 		}
 		
-		listaCert.add(privk);
-		listaCert.add(pubk);
+		listaObjsCert.add(privk);
+		listaObjsCert.add(pubk);
 		
-		return listaCert;
+		return listaObjsCert;
 	}
 
 	// --------------------------------------------------------------------
@@ -204,6 +228,12 @@ public class ReadCertificados {
 			
 			//Uso StringBuilder para no ahogar el pool String
 			StringBuilder msj = new StringBuilder(
+				"""
+				====================================================
+				CERTIFICADO
+				====================================================
+				Imprimiendo contenido\n\n
+				""" + 
 				//Version del Certificado
 		    	"Tipo: " + cert.getType() + "\n" +
 		    	"Versión: " + cert.getVersion() + "\n" +
@@ -226,13 +256,12 @@ public class ReadCertificados {
 			
 			System.out.println("""
 				\n\n
-				========= ReadCertificados.leerCertificado =========
+				========= ReadCertificados.leerCertificado =========				
 				
-				====================================================
-				CERTIFICADO
-				====================================================
-				Imprimiendo contenido\n\n
-				""" + "\n" + msj.toString());
+				"""
+				+	msj.toString());
+			
+			RegistradorEventos.registarMensajeAlGUI(msj);
 			
 			//1: Algoritmo de Firma (String)
 			resul.add(cert.getSigAlgName());
@@ -260,8 +289,10 @@ public class ReadCertificados {
 		} catch (CertificateException e) { 
 			e.printStackTrace();
 			throw new CertificateException("No es posible abstraer el certificado X.509");
-		}
-		
+		}catch(NoSuchProviderException e) {
+			e.printStackTrace();
+			throw new NoSuchProviderException("Error en las herramientas internas para la lectura del certificado");
+		}		
 		//return resul;
 	}
 	
@@ -276,7 +307,8 @@ public class ReadCertificados {
 	 * @return {@link PublicKey}
 	 */
 	public PublicKey leerPublicKey(String pubKRuta) 
-		throws IOException, IllegalArgumentException{
+		throws IOException, IllegalArgumentException
+	{
 		PublicKey pk = null;
 			
 		Boolean[] analisis = null;
@@ -284,19 +316,17 @@ public class ReadCertificados {
 			analisis = determinaPEMoDER_y_encriptadoPKCS8(pubKRuta);
 		}
 		catch(IOException e) {
-			System.err.println("El archivo no "
-					+ "corresponde a una PrivateKey, "
-					+ "por lo que no se puede procesar");
-			throw new IOException("El archivo no "
-					+ "corresponde a una PrivateKey, "
-					+ "por lo que no se puede procesar");
+			System.err.println("El archivo de la Public Key, "
+					+ "no puede leerse ni procesarse");
+			throw new IOException("El archivo de la Public Key, "
+					+ "no puede leerse ni procesarse");
 		}  		
 		catch(IllegalArgumentException e) {
 			System.err.println("El archivo no "
-				+ "corresponde a una PrivateKey, "
+				+ "corresponde a una Public Key, "
 				+ "por lo que no se puede procesar");
 			throw new IllegalArgumentException("El archivo no "
-				+ "corresponde a una PrivateKey, "
+				+ "corresponde a una Public Key, "
 				+ "por lo que no se puede procesar");
 		}
 		
@@ -307,7 +337,8 @@ public class ReadCertificados {
 		  */
 		//¿es PublicKey?
 		if (analisis[1] == false) {
-			throw new IllegalArgumentException("El archivo no es una PublicKey "
+			throw new IllegalArgumentException("El archivo no corresponde "
+					+ "a una PublicKey "
 					+ "por lo que no se puede procesar");
 		}		
 		
@@ -319,7 +350,22 @@ public class ReadCertificados {
 		else {
 			pk = descifrarPublicKeyDER(pubKRuta);
 		}
-				
+			
+		//Registrar evento de Lectura de PublicKey exitosa
+		StringBuilder msj = new StringBuilder("""
+			====================================================
+			PUBLIC KEY
+			====================================================
+			Imprimiendo contenido...\n\n
+			""" + 
+	    	//Datos de la Public Key
+	    	"Codif: " + ((analisis[0] == true) ? "PEM":"DER")  + "\n" +
+	    	"Clave pública: " + pk.getFormat() + "\n" +
+	    	"Algoritmo de clave pública: "
+	    		+ pk.getAlgorithm() + "\n" 
+	    );
+		RegistradorEventos.registarMensajeAlGUI(msj);
+		
 		return pk;
 	}
 	
@@ -328,7 +374,9 @@ public class ReadCertificados {
 	 * @param pubKRuta La ruta del archivo
 	 * @return {@link PublicKey}
 	 */
-	public PublicKey descifrarPublicKeyPEM(String pubKRuta) {
+	public PublicKey descifrarPublicKeyPEM(String pubKRuta) 
+		throws IOException, PEMException
+	{
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
 		Security.addProvider(new BouncyCastleProvider());
 		
@@ -346,7 +394,9 @@ public class ReadCertificados {
 		} catch(IOException io)
 		{
 			io.printStackTrace();
-			return null;
+			//return null;
+			throw new IOException("Falló la lectura de la PrivateKey en "
+				+ "formato PEM.");
 		}
 		
 		/*
@@ -358,6 +408,9 @@ public class ReadCertificados {
 				getPublicKey(pki);
 		} catch (PEMException e) {			
 			e.printStackTrace();
+			//return null;
+			throw new PEMException("Falló la conversión del archivo "
+				+ "a una Public Key utilizable.");
 		}
 		
 		return pk;	
@@ -368,7 +421,9 @@ public class ReadCertificados {
 	 * @param pubKRuta La ruta del archivo
 	 * @return {@link PublicKey}
 	 */
-	public PublicKey descifrarPublicKeyDER(String pubKRuta) {
+	public PublicKey descifrarPublicKeyDER(String pubKRuta) 
+		throws IOException, PEMException
+	{
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
 		Security.addProvider(new BouncyCastleProvider());
 		
@@ -385,7 +440,9 @@ public class ReadCertificados {
 			pki = SubjectPublicKeyInfo.getInstance(asn1);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return null;
+			//return null;
+			throw new IOException("Falló la lectura de la PublicKey en "
+				+ "formato DER.");
 		}
 			
 		/*
@@ -397,6 +454,9 @@ public class ReadCertificados {
 				getPublicKey(pki);
 		} catch (PEMException e) {			
 			e.printStackTrace();
+			//return null;
+			throw new PEMException("Falló la conversión del archivo "
+				+ "a una Public Key utilizable.");
 		}
 		
 		return pk;
@@ -478,8 +538,22 @@ public class ReadCertificados {
 			else {
 				pk = descifrarPrivateKeyDER(privKRuta);
 			}
-			
 		}
+		
+		//Registrar evento de Lectura de PrivateKey exitosa
+		StringBuilder msj = new StringBuilder("""
+			====================================================
+			PRIVATE KEY
+			====================================================
+			Imprimiendo contenido...\n\n
+			""" + 
+	    	//Datos de la Public Key
+	    	"Codif: " + ((analisis[0] == true) ? "PEM":"DER")  + "\n" +	    	
+	    	"Clave privada: " + pk.getFormat() + "\n" +
+			"Algoritmo de clave privada: "
+			+ pk.getAlgorithm() + "\n" 
+	    );
+		RegistradorEventos.registarMensajeAlGUI(msj);
 		
 		return pk;
 	}
@@ -488,8 +562,12 @@ public class ReadCertificados {
 	 * Descifra la PrivateKey en formato PEM
 	 * @param privKRuta La ruta del archivo
 	 * @return {@link PrivateKey}
+	 * @throws IOException 
+	 * @throws PEMException (Hereda de IOException) 
 	 */
-	public PrivateKey descifrarPrivateKeyPEM(String privKRuta) {
+	public PrivateKey descifrarPrivateKeyPEM(String privKRuta) 
+		throws IOException, PEMException
+	{
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
 		Security.addProvider(new BouncyCastleProvider());
 		
@@ -507,7 +585,9 @@ public class ReadCertificados {
 		} catch(IOException io)
 		{
 			io.printStackTrace();
-			return null;
+			//return null;
+			throw new IOException("Falló la lectura de la PrivateKey en "
+				+ "formato PEM (sin password)");
 		}
 		
 		/*
@@ -543,7 +623,9 @@ public class ReadCertificados {
 			}
 		} catch (PEMException e) {			
 			e.printStackTrace();
-			return null;
+			//return null;
+			throw new PEMException("Falló la conversión del archivo "
+				+ "a una Private Key utilizable.");
 		}
 		
 		return pk;			
@@ -555,7 +637,8 @@ public class ReadCertificados {
 	 * @return {@link PrivateKey}
 	 */
 	public PrivateKey descifrarPrivateKeyDER(String privKRuta) 
-		 {
+		throws IOException, PEMException
+	{
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
 		Security.addProvider(new BouncyCastleProvider());
 		
@@ -572,7 +655,9 @@ public class ReadCertificados {
 			pki = PrivateKeyInfo.getInstance(asn1);
 		} catch (IOException e) {
 			e.printStackTrace();
-			return null;
+			//return null;
+			throw new IOException("Falló la lectura de la PrivateKey en "
+				+ "formato DER (sin password).");
 		}
 			
 		/*
@@ -584,6 +669,9 @@ public class ReadCertificados {
 				getPrivateKey(pki);
 		} catch (PEMException e) {			
 			e.printStackTrace();
+			//return null;
+			throw new PEMException("Falló en la conversión del archivo "
+				+ "a una Private Key utilizable.");
 		}
 		
 		return pk;
@@ -601,7 +689,9 @@ public class ReadCertificados {
 	 * @throws PKCSException
 	 */
 	public PrivateKey descifrarEncryptedPrivateKeyDER(String privKRuta, String pass) 
-			throws IOException, OperatorCreationException, PKCSException {
+		throws IOException, OperatorCreationException, 
+		PKCSException, PEMException 
+	{
 			
 			//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
 			Security.addProvider(new BouncyCastleProvider());
@@ -609,8 +699,20 @@ public class ReadCertificados {
 			// 1. Se adapta la ruta a un objeto Path
 			Path path = Path.of(privKRuta);
 			
-			// 2. Se lee todo el archivo y se convierte en byte[] 
-			byte[] datos = Files.readAllBytes(path);
+			// 2. Se lee todo el archivo y se convierte en byte[]
+			
+			byte[] datos = null;
+			try {
+				datos = Files.readAllBytes(path);
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new IOException("""
+					Imposible leer el archivo.
+					No es un objeto DER legible (PrivateKey - PKCS#8)
+					o la ruta del archivo esta mal.
+					"""
+				);
+			}
 			
 			 /*
 	         * 3. Comprueba que realmente tenemos un
@@ -646,13 +748,17 @@ public class ReadCertificados {
 						.decryptPrivateKeyInfo(desencriptador);
 			} catch (PKCSException e) {
 				e.printStackTrace();
-				throw new PKCSException("Fallo al desencriptar con"
-					+ "el proveedor configurado a partir de la contraseña");
+				throw new PKCSException("""
+					Fallo al desencriptar con el proveedor 
+					configurado a partir de la contraseña. 
+					Revise que la contraseña sea la correcta.
+				""");
 			}
 			
 			/**
 			 * 6. Convertir el PrivateKeyInfo a un java.security.PrivateKey
 			 */				
+			//PUEDE THROWS PEMException -> IOException
 			PrivateKey descifrada = 
 				new JcaPEMKeyConverter()
 				.setProvider("BC")
@@ -675,7 +781,7 @@ public class ReadCertificados {
 	 */
 	public PrivateKey descifrarEncryptedPrivateKeyPEM(String ruta, String pass)
 		throws IOException, IllegalArgumentException, 
-		OperatorCreationException, PKCSException{
+		OperatorCreationException, PKCSException, PEMException{
 		
 		//Por defecto, se agrega el Provider de BouncyCastle a la configuracion del Certificado
 		Security.addProvider(new BouncyCastleProvider());
@@ -688,13 +794,15 @@ public class ReadCertificados {
 		 * a bytes y a la vez en un objeto PEM (ASN.1)
 		 * 
 		try(
-		//Lectura del archivo a partir de una ruta URI/String			
-		InputStream is = Files.newInputStream(Path.of(""));
-		//Convierte esa entrada de stream de bytes (InputStream<byte>)
-		//	en un Reader 
-		InputStreamReader isr = new InputStreamReader(is);
-		//La lectura de bytes va hacia el PEMParser
-		PEMParser ps =	new PEMParser(isr)) {
+			//Lectura del archivo a partir de una ruta URI/String			
+			InputStream is = Files.newInputStream(Path.of(""));
+			
+			//Convierte esa entrada de stream de bytes (InputStream<byte>)
+			//	en un Reader (InputStreamReader)
+			InputStreamReader isr = new InputStreamReader(is);
+		
+			//La lectura de bytes va hacia el PEMParser
+			PEMParser ps =	new PEMParser(isr)) {
 		}
 		*/
 		
@@ -710,7 +818,7 @@ public class ReadCertificados {
 				
 			//Sustitución del FileReader por Files.newBufferedReader
 			PEMParser pemParser = new PEMParser(Files.newBufferedReader(path))
-			) {
+		) {
 			/*2. Lee el objeto PEM y lo convierte en un 
 			 * objeto de BouncyCastle.
 			 * 
@@ -746,9 +854,10 @@ public class ReadCertificados {
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new IOException("""
-				Imposible leer el archivo
-				No es un objeto (PrivateKey - PKCS#8)
-				PEM legible o la ruta esta mal"""
+				Imposible leer el archivo.
+				No es un objeto PEM legible (PrivateKey - PKCS#8)
+				o la ruta del archivo esta mal.
+				"""
 			);
 		}
 		
@@ -815,13 +924,17 @@ public class ReadCertificados {
 					.decryptPrivateKeyInfo(desencriptador);
 		} catch (PKCSException e) {
 			e.printStackTrace();
-			throw new PKCSException("Fallo al desencriptar con"
-				+ "el proveedor configurado a partir de la contraseña");
+			throw new PKCSException("""
+				Fallo al desencriptar con el proveedor 
+				configurado a partir de la contraseña. 
+				Revise que la contraseña sea la correcta.
+			""");
 		}
 		
 		/**
 		 * 6. Convertir el PrivateKeyInfo a un java.security.PrivateKey
 		 */				
+		//PUEDE THROWS PEMException -> IOException
 		PrivateKey descifrada = 
 			new JcaPEMKeyConverter()
 			.setProvider("BC")

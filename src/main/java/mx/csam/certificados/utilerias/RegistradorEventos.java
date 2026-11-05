@@ -7,7 +7,7 @@ public class RegistradorEventos {
 	//PROPIEDADES
 	private StringBuilder msj = null;	
 	private StringBuilder err = null;
-	private ArrayList<CharSequence> logs = null;
+	private static ArrayList<CharSequence> logs = null;
 	
 	//CONSTRUCTOR
 	public RegistradorEventos() {
@@ -41,18 +41,25 @@ public class RegistradorEventos {
 	}*/	
 	
 
-	public ArrayList<CharSequence> getLogs() {
+	public static ArrayList<CharSequence> getLogs() {
 		return logs;
 	}
 
 
-	public void setLogs(ArrayList<CharSequence> logs) {
-		this.logs = logs;
+	public static void setLogs(ArrayList<CharSequence> newLogs) {
+		logs = newLogs;
 	}
-
-
+	
+	public static CharSequence getUltimoMsj() {
+		return logs.getLast();
+	}
+	
+	public static String getUltimoMsjToString() {
+		return logs.getLast().toString();
+	}
+	
 	//METODOS
-	public <T extends Throwable> StringBuilder registarExcepcion(T t) {
+	public static <T extends Throwable> StringBuilder registarExcepcion(T t) {
 		String tClass = t.getClass().getName();
 		String tMsj = t.getMessage();
 		String tLocMsj = t.getLocalizedMessage();
@@ -79,29 +86,45 @@ public class RegistradorEventos {
 		);
 		
 		System.out.println(msj.toString()); 
-		
-		return msj;
-	}
-	
-	public <T extends CharSequence> StringBuilder registarMensajesAlGUI(T t) {
-		String tClass = null;
-		String tMsj = null;
-		String tLocMsj = null;
-		
-		//Luego trabajar en recuperar el printStackTrace() e imprimirlo en pantalla
-		StackTraceElement[] tCausa = null;
-		
-		//Uso StringBuilder para no ahogar el pool String
-		StringBuilder msj = new StringBuilder(t);
-		
-		System.out.println(msj.toString()); 
 		agregarAlLog(msj);
 		
 		return msj;
 	}
 	
-	public <T extends CharSequence> void agregarAlLog(T t){
+	public static <T extends Throwable> StringBuilder registarExcepcionAlGUI(String origen, String causa) {		
+		
+		//Uso StringBuilder para no ahogar el pool String
+		StringBuilder msj = new StringBuilder(
+			"""
+			====================================================
+			E R R O R
+			====================================================
+			Imprimiendo contenido\n\n
+			""" +	
+			//Cabeceras
+			"Origen: " + origen + "\n" +
+			"Motivo: " + causa + "\n\n\n" 
+		);
+		
+		System.out.println(msj.toString() + "\n\n\n"); 
+		agregarAlLog(msj);
+		
+		return msj;
+	}
+	
+	
+	public static <T extends CharSequence> StringBuilder registarMensajeAlGUI(T t) {		
+		//Uso StringBuilder para no ahogar el pool String
+		StringBuilder msj = new StringBuilder(t);
+		
+		System.out.println(msj.toString() + "\n\n\n"); 
+		agregarAlLog(msj);
+		
+		return msj;
+	}
+	
+	public static <T extends CharSequence> void agregarAlLog(T t){
 	//public <T extends Charset> ArrayList<T> agregarAlLog(){
-		this.logs.add(t);
+		logs.add(t);
 	}
 }

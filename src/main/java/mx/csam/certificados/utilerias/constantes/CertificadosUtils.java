@@ -1,5 +1,6 @@
 package mx.csam.certificados.utilerias.constantes;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.security.spec.MGF1ParameterSpec;
 import java.util.ArrayList;
@@ -94,20 +95,9 @@ public final class CertificadosUtils {
 	 * 
 	 * @return {@code HashMap<String, Object[]>}
 	 */
-	//public static HashMap<String, HashMap<String, List<String>>> listaParametrosKPG(){
-	//public static HashMap<String, HashMap<String, List<String>>> listaParametrosKPG(){
 	public static LinkedHashMap<String, LinkedHashMap<String, List<String>>> listaParametrosKPG(){
-		//HashMap<String, Object[]> lista = new HashMap<String, Object[]>();
-
-		//HashMap<String, HashMap<String, List<String>>> listaV2 = new HashMap<String, HashMap <String, List<String>>>();		
-		//HashMap<String, HashMap<String, List<String>>> listaV2 = new HashMap<>();
-		LinkedHashMap<String, LinkedHashMap<String, List<String>>> listaV2 = new LinkedHashMap<>();
+		LinkedHashMap<String, LinkedHashMap<String, List<String>>> lista = new LinkedHashMap<>();
 		LinkedHashMap<String, List<String>> sublista = null;//new HashMap <String, List<String>>();
-
-		//sl = SubLista
-		//ArrayList<String> slParam1 = null; 
-		//ArrayList<String> slParam2 = null;
-		//Object[] valores = null;
 		
 		//Algoritmo
 		for (String alg : algoritmo_asimetrico) {
@@ -115,15 +105,6 @@ public final class CertificadosUtils {
 					
 			switch (key) {
 				case "RSA" -> {
-					/*slParam1 = (ArrayList<String>) List.of(lista_todos_tamanio_de_clave_KPG);
-					slParam2 = (ArrayList<String>) List.of(
-						concatenarArrays(
-							lista_hash_familia_SHA1,
-							lista_hash_familia_SHA2,
-							lista_hash_familia_SHA3
-						)
-					);*/
-
 					List<String> familias_SHA = List.of(
 						concatenarArrays(
 							lista_hash_familia_SHA1,
@@ -132,7 +113,6 @@ public final class CertificadosUtils {
 						)
 					);
 
-					//sublista = new HashMap<>();
 					sublista = new LinkedHashMap<>();
 
 					for (String tamanio : lista_todos_tamanio_de_clave_KPG) {
@@ -141,14 +121,6 @@ public final class CertificadosUtils {
 
 				}
 				case "RSA-PSS" -> {					
-					/*slParam1 = (ArrayList<String>) List.of(lista_todos_tamanio_de_clave_KPG);
-					slParam2 = (ArrayList<String>) List.of(
-						concatenarArrays(
-							Arrays.copyOfRange(lista_hash_familia_SHA1, 0, 1),
-							lista_hash_familia_SHA2,
-							lista_hash_familia_SHA3
-						)
-					);*/
 					List<String> familias_SHA = List.of(
 						concatenarArrays(
 							Arrays.copyOfRange(lista_hash_familia_SHA1, 0, 1),
@@ -157,7 +129,6 @@ public final class CertificadosUtils {
 						)
 					);
 
-					//sublista = new HashMap<>();
 					sublista = new LinkedHashMap<>();
 
 					for (String tamanio : lista_todos_tamanio_de_clave_KPG) {
@@ -165,18 +136,6 @@ public final class CertificadosUtils {
 					}					
 				}
 				case "DSA" -> {
-					/* 
-					slParam1 = (ArrayList<String>) List.of(Arrays.copyOfRange(lista_todos_tamanio_de_clave_KPG, 0, 3) );
-					slParam2 = (ArrayList<String>) List.of(
-						concatenarArrays(
-							Arrays.copyOfRange(lista_hash_familia_SHA1, 0, 1),
-							Arrays.copyOfRange(lista_hash_familia_SHA2, 0, 3)
-						)
-					);
-					*/
-
-					//sublista = new HashMap<String, List<String>>();
-					//sublista = new HashMap<>();
 					sublista = new LinkedHashMap<>();
 
 					sublista.put("1024", new ArrayList<>(
@@ -189,7 +148,7 @@ public final class CertificadosUtils {
 						List.of("SHA-256")
 					));
 
-					listaV2.put(key, sublista);
+					lista.put(key, sublista);
 				}
 				case "EC", "ECDSA" -> {
 					/* 
@@ -199,15 +158,8 @@ public final class CertificadosUtils {
 		 			* EC			|Curva Init		|				|
 		 			* ---------------------------------------------------------
 		 			* */
-					/*slParam1 = (ArrayList<String>) Arrays.asList(						
-						concatenarArrays(
-							ALGORTIMOS_FAM_EC.SECG_o_NIST.NIST_mas_usadas,
-							ALGORTIMOS_FAM_EC.Brainpool.Brainpool_mas_usados
-						)						
-					);*/
-
+					
 					//EL SEGUNDO PARAMETRO NO EXISTE
-					//slParam2 = new ArrayList<>();
 					
 					//sublista = new HashMap<>();
 					sublista = new LinkedHashMap<>();			
@@ -225,7 +177,6 @@ public final class CertificadosUtils {
 					* ---------------------------------------------------------
 					* */
 
-					//sublista = new HashMap<>();
 					sublista = new LinkedHashMap<>();
 
 					for(String genCurva : ALGORTIMOS_FAM_EC.GOST.gen_curva){
@@ -237,44 +188,32 @@ public final class CertificadosUtils {
 				}
 				case "Ed25519" -> {
 					// NO REQUIEREN PARAMETROS EXTRA
-					/*slParam1 = new ArrayList<String>();
-					slParam2 = new ArrayList<String>();*/
-
-					//sublista = new HashMap<>();
 					sublista = new LinkedHashMap<>();
 				}
 				case "Ed448" -> {
 					// NO REQUIEREN PARAMETROS EXTRA
-					/*slParam1 = new ArrayList<String>();
-					slParam2 = new ArrayList<String>();*/
-
-					//sublista = new HashMap<>();
 					sublista = new LinkedHashMap<>();
 				}
 				default ->{					
 					//Usualmente es para un algoritmo desconocido
 					//o  no registrado
-					/*slParam1 = new ArrayList<String>();
-					slParam2 = new ArrayList<String>();*/
-
-					//sublista = new HashMap<>();
 					sublista = new LinkedHashMap<>();
-					//throw new IllegalArgumentException("Unexpected value: " + key);
 				}
 			}
-			/*
-			valores = new Object[2];
-			valores[0] = slParam1;
-			valores[1] = slParam2;
-			lista.put(key, valores);
-			*/
-			listaV2.put(key, sublista);
+			
+			lista.put(key, sublista);
 		}
 		
-		return listaV2;
+		return lista;
 	}
 	
-	public static String[] concatenarArrays(String[] ... listas ) {
+	/**
+	 * Permite juntar varios arrays de tipo {@code String} en uno solo.
+	 * @param listas
+	 * @return {@code String[]}
+	 */
+	//public static <T> String[] concatenarArrays( Class<T> clazz , String[] ... listas) {
+	public static String[] concatenarArrays(String[] ... listas) {
 		ArrayList<String> arr =  new ArrayList<String>();
 		
 		for (String[] unaLista : listas) {
@@ -289,6 +228,7 @@ public final class CertificadosUtils {
 		 *		es necesario)
 		 *Class<? extends T>: El tipo de clase a retornar
 		 * */
+		//Ejemplo sin usar -> //concatenarArrays(CLASE.class, listas);
 		return Arrays.copyOf(arr.toArray(), arr.toArray().length, String[].class);
 	}
 		
@@ -816,7 +756,7 @@ public final class CertificadosUtils {
 	 * 
 	 * @return {@code Map<String, MGF1ParameterSpec>}
 	 * */
-	public static Map<String, MGF1ParameterSpec> listaPSSParameterSpec(){
+	public final static Map<String, MGF1ParameterSpec> listaPSSParameterSpec(){
 		HashMap<String, MGF1ParameterSpec> lista = new HashMap<String, MGF1ParameterSpec>();
 		lista.put("MD2", null);
 		lista.put("MD5", null);		
