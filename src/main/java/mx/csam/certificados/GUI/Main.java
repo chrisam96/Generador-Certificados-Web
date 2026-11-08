@@ -38,6 +38,7 @@ import org.bouncycastle.pkcs.PKCSException;
 import mx.csam.certificados.logic.read.ReadCertificados;
 import mx.csam.certificados.logic.write.WriteCertificados;
 import mx.csam.certificados.utilerias.RegistradorEventos;
+import mx.csam.certificados.utilerias.pojo.WriteCertificadosPOJO;
 import mx.csam.certificados.utilerias.records.CertificadoWriteGUIRecord;
 
 public class Main extends JFrame {
@@ -158,7 +159,9 @@ public class Main extends JFrame {
 	private ReadCertificados rc = new ReadCertificados();
 	private RegistradorEventos re = new RegistradorEventos();
 	private WriteCertificados wc = new WriteCertificados();
+	@Deprecated
 	public CertificadoWriteGUIRecord rec = null;	
+	private WriteCertificadosPOJO pojo = new WriteCertificadosPOJO();
 	
 	//Lista de objetos recuperados del Certificados
 	ArrayList<Object> listaObjsCert = new ArrayList<Object>();
@@ -311,6 +314,29 @@ public class Main extends JFrame {
 				wf = new WriteFormulario(main);
 				wf.dia.setVisible(true);
 				System.out.println("**** DESPUES DE SET_VISIBLE()");
+				//pojo = wf.pojo;
+				pojo = wf.getPojo();
+				System.out.println(
+					pojo.toString()					
+				);
+				
+				//Escribir los archivos
+				try {
+					Object[] lista = wc.generarCertificadoOrCsr(
+						pojo.getAlgoritmo(), 
+						pojo.getTitularDN(), 
+						pojo.getEmisorDN(), 
+						pojo.getFecha_vig_y_serial(), 
+						pojo.getDatosKPG(), 
+						pojo.getCerOrCsr(), 
+						pojo.getDatosPKCifrado(), 
+						pojo.getCodif_archivo(), 
+						pojo.get_SAN()
+					);
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 			}
 		});
 		btnEscritura.setName("btnGenerar");
@@ -895,6 +921,13 @@ public class Main extends JFrame {
 				String priK = main.arch_prik != null ? main.arch_prik.getAbsolutePath() : null;
 				String pubK = main.arch_pubk != null ? main.arch_pubk.getAbsolutePath() : null;
 				String pass = main.pass; //main.pass = txtCargarPrik1.getText();
+				System.out.println(
+					"\n\n\n\n" +
+					certi + "\n" +
+					priK + "\n" +
+					pubK + "\n" +
+					pass + "\n" 
+				);
 				try {
 					listaObjsCert = rc.leerArchivos(certi, priK, pubK, pass);
 					JOptionPane.showMessageDialog(
@@ -904,9 +937,11 @@ public class Main extends JFrame {
 						+ "es correcta."
 						+ "</html>",
 						"Terminado",
-						JOptionPane.PLAIN_MESSAGE
+						JOptionPane.INFORMATION_MESSAGE
 					);
-					main.txA_Lectura.setText("""
+					main.txA_Lectura.setText(
+					RegistradorEventos.getUltimosMsjToString(12)+
+					"""
 					Los archivos son integros entre sí. 
 					Su validación criptográfica ha sido comprobada con éxito.
 					""".replaceAll("\t", ""));

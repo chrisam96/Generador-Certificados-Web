@@ -493,11 +493,13 @@ public class WriteCertificados {
 		 * --------------------------------------------------------
 		 * ALGORITMO	|Param 1		|Param 2		|Param 3
 		 * --------------------------------------------------------
-		 * RSA-PSS 		|Tam Clave BITS	|Tam Hash SHA	|Salt
-		 * EC			|Curva Init		|				|
-		 * GOST			|Curva Init 	|Gen Curva		|	 
-		 * RSA			|Tam Clave BITS	|				|
+		 * RSA-PSS		|Tam Clave BITS	|Tam Hash SHA	|Salt
+		 * RSA			|Tam Clave BITS	|Tam Hash SHA	|
 		 * DSA			|Tam Clave BITS	|				|
+		 * GOST			|Curva Init 	|Gen Curva		|	 
+		 * EC			|Curva Init		|				|
+		 * Ed25519		|			 	|				|	 
+		 * Ed448		|				|				|	 
 		 * ---------------------------------------------------------
 		*/ 
 		
@@ -811,11 +813,13 @@ public class WriteCertificados {
 		 * --------------------------------------------------------
 		 * ALGORITMO	|Param 1		|Param 2		|Param 3
 		 * --------------------------------------------------------
-		 * RSA-PSS 		|Tam Clave BITS	|Tam Hash SHA	|Salt
-		 * EC			|Curva Init		|				|
-		 * GOST			|Curva Init 	|Gen Curva		|	 
-		 * RSA			|Tam Clave BITS	|				|
+		 * RSA-PSS		|Tam Clave BITS	|Tam Hash SHA	|Salt
+		 * RSA			|Tam Clave BITS	|Tam Hash SHA	|
 		 * DSA			|Tam Clave BITS	|				|
+		 * GOST			|Curva Init 	|Gen Curva		|	 
+		 * EC			|Curva Init		|				|
+		 * Ed25519		|			 	|				|	 
+		 * Ed448		|				|				|	 
 		 * ---------------------------------------------------------
 		 */ 
 		/* Cuando creas un certificado con X509v3CertificateBuilder, usas un ContentSigner. 
@@ -1717,7 +1721,6 @@ public class WriteCertificados {
 	}
 	
 	public Date crearFechaInicioValidez(String _fecha) {
-		//TimeZone.setDefault(TimeZone.getTimeZone("America/Mexico_City"));
 		if (_fecha == null) {
 			return new Date();
 		}
@@ -1771,11 +1774,15 @@ public class WriteCertificados {
 			
 			Instant i = o.toInstant();
 			
-			Date fecha = Date.from(i);*/
+			Date fecha = Date.from(i);
+			
+			return fecha;
+			*/
 			
 	        /*DateTimeFormatter formatter =
 	                DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssxxx")
 	                .withZone(ZoneId.of("America/Mexico_City"));
+			//TimeZone.setDefault(TimeZone.getTimeZone("America/Mexico_City"));
 	        System.out.println("WriteCertificados.convertirFecha():"+ formatter.format(fecha.toInstant()));*/
 	        System.out.println("WriteCertificados.crearFechaInicioValidez():"+ _fecha);
 

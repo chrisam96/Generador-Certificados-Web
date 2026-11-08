@@ -48,15 +48,7 @@ public class RegistradorEventos {
 
 	public static void setLogs(ArrayList<CharSequence> newLogs) {
 		logs = newLogs;
-	}
-	
-	public static CharSequence getUltimoMsj() {
-		return logs.getLast();
-	}
-	
-	public static String getUltimoMsjToString() {
-		return logs.getLast().toString();
-	}
+	}	
 	
 	//METODOS
 	public static <T extends Throwable> StringBuilder registarExcepcion(T t) {
@@ -127,4 +119,29 @@ public class RegistradorEventos {
 	//public <T extends Charset> ArrayList<T> agregarAlLog(){
 		logs.add(t);
 	}
+	
+	public static CharSequence getUltimoMsj() {
+		return logs.getLast();
+	}
+	
+	public static String getUltimoMsjToString() {
+		return logs.getLast().toString();
+	}
+	
+	public static String getUltimosMsjToString(int num) {
+		String lista = "";
+		
+		int limite = logs.size() - num;
+		
+		if(num <= logs.size()) {
+			//for (int i = logs.size()-1; i > limite; i--) {
+			for (int i = limite; i < logs.size(); i++) {
+				lista = lista.concat(logs.get(i).toString()).concat("\n\n");
+			}
+		}
+		
+		return lista;
+	}
+	
+	
 }

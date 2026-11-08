@@ -54,7 +54,7 @@ class WriteCertificadosTest {
 	@Test
 	@Order(1)
 	@DisplayName("Validar concatenarContenidoCertificado()")
-	@Disabled
+	//@Disabled
 	void test1() {
 		System.out.println("\nPRUEBA #1\n");
 		
@@ -64,14 +64,16 @@ class WriteCertificadosTest {
 		String dN = "CN=Christian,O=Demo,OU=Sistemas,L=Metepec,ST=EdoMex,C=MX";
 		
 		assertEquals(dN, w.concatenarContenidoCertificado(arr));
+		
+		String[] arr2 = {"Christian", "Demo", "", "", "EdoMex", "MX"};
+		assertNotNull(new X500Name(w.concatenarContenidoCertificado(arr2)));
 	}
 
-	//@Test
-	@ParameterizedTest
-	@MethodSource("datos_generarKeyPair")
 	@Order(2)
 	@DisplayName("Validar generarKeyPair()")
-	@Disabled
+	//@Disabled
+	@ParameterizedTest
+	@MethodSource("datos_generarKeyPair")
 	void test2(String alg, String[] datosKPG) {
 		System.out.println("\nPRUEBA #2\n");
 		
@@ -143,11 +145,11 @@ class WriteCertificadosTest {
 		);
 	}
 	
+	@Order(3)
+	@DisplayName("Validar generarKeyPair() (Curvas Elipticas EC y GOST)")	
 	@Disabled
 	@ParameterizedTest
 	@MethodSource("datos_generarKeyPair_EC")
-	@Order(3)
-	@DisplayName("Validar generarKeyPair() (Curvas Elipticas EC y GOST)")	
 	void test3(String alg, String[] datosKPG) {
 		System.out.println("\nPRUEBA #3\n");
 		
@@ -244,11 +246,11 @@ class WriteCertificadosTest {
 		return lista.stream();
 	}
 
-	@Disabled
-	@ParameterizedTest
-	@MethodSource("datos_generarKeyPair")
 	@Order(4)
 	@DisplayName("Validar generaJcaContentSigner()")	
+	@Disabled
+	@MethodSource("datos_generarKeyPair")
+	@ParameterizedTest
 	void test4(String alg, String[] datosKPG) {
 		System.out.println("\nPRUEBA #4\n");
 		
@@ -269,11 +271,11 @@ class WriteCertificadosTest {
 		}
 	}
 
+	@Order(5)
+	@DisplayName("Validar generaJcaContentSigner() (Curvas Elipticas EC y GOST)")	
 	@Disabled
 	@ParameterizedTest
 	@MethodSource("datos_generarKeyPair_EC")
-	@Order(5)
-	@DisplayName("Validar generaJcaContentSigner() (Curvas Elipticas EC y GOST)")	
 	void test5(String alg, String[] datosKPG) {
 		System.out.println("\nPRUEBA #5\n");
 		
@@ -299,12 +301,10 @@ class WriteCertificadosTest {
 		 * 		[1]: ISO-8601 
 		 * 			2026-05-08T15:42:10.123-05:00 
 	 * */
-	@Test
-	//@ParameterizedTest
-	//@MethodSource("datos_generarKeyPair_EC")
 	@Order(6)
 	@DisplayName("Validar convertirFecha() (Para la fecha de Inicio de Validez)")
 	@Disabled
+	@Test
 	void test6() {
 		System.out.println("\nPRUEBA #6\n");
 		
@@ -377,12 +377,10 @@ class WriteCertificadosTest {
 	 *			[5]: milisegundos
 	 *			[6]: TimeZone (Offset) >> Descartar
 	*/
-	@Test
-	//@ParameterizedTest
-	//@MethodSource("datos_generarKeyPair_EC")
 	@Order(7)
 	@DisplayName("Validar crearFechaVigencia()")	
 	@Disabled
+	@Test
 	void test7() {
 		System.out.println("\nPRUEBA #7\n");
 		
@@ -426,12 +424,10 @@ class WriteCertificadosTest {
 	}
 	
 	
-	@Test
-	//@ParameterizedTest
-	//@MethodSource("datos_generarKeyPair_EC")
-	@Disabled
 	@Order(8)
 	@DisplayName("Validar generarCuerpoDeCertificadoOrCsr() - Solo .cer")	
+	@Disabled
+	@Test
 	void test8() {
 		System.out.println("\nPRUEBA #8\n");
 		
@@ -801,12 +797,10 @@ class WriteCertificadosTest {
 		return a.get(ran.nextInt(cont));
 	} 
 		
-	@Test
-	//@ParameterizedTest
-	//@MethodSource("datos_generarKeyPair_EC")
-	//@Disabled
 	@Order(9)
 	@DisplayName("Validar generarCertificadoOrCsr() - codif: PEM + sin EncryptedPrivateKey")	
+	@Disabled//->REACTIVAR
+	@Test
 	void test9() throws Exception {
 		WriteCertificados w = new WriteCertificados();
 		
@@ -1068,12 +1062,10 @@ class WriteCertificadosTest {
 	}
 	
 	
-	@Test
-	//@ParameterizedTest
-	//@MethodSource("datos_generarKeyPair_EC")
-	//@Disabled
 	@Order(10)
 	@DisplayName("Validar generarCertificadoOrCsr() - codif: DER + sin EncryptedPrivateKey")	
+	@Disabled//->REACTIVAR
+	@Test
 	void test10() throws Exception {
 		WriteCertificados w = new WriteCertificados();
 		
@@ -1335,12 +1327,10 @@ class WriteCertificadosTest {
 	}
 		
 	
-	@Test
-	//@ParameterizedTest
-	//@MethodSource("datos_generarKeyPair_EC")
-	//@Disabled
 	@Order(11)
 	@DisplayName("Validar generarCertificadoOrCsr() - codif: PEM + CON-EncryptedPrivateKey")	
+	@Disabled//->REACTIVAR
+	@Test
 	void test11() throws Exception {
 		WriteCertificados w = new WriteCertificados();
 		
@@ -1624,12 +1614,10 @@ class WriteCertificadosTest {
 	}
 
 	
-	@Test
-	//@ParameterizedTest
-	//@MethodSource("datos_generarKeyPair_EC")
-	//@Disabled
 	@Order(12)
 	@DisplayName("Validar generarCertificadoOrCsr() - codif: DER + CON-EncryptedPrivateKey")	
+	@Disabled//->REACTIVAR
+	@Test
 	void test12() throws Exception {
 		WriteCertificados w = new WriteCertificados();
 		

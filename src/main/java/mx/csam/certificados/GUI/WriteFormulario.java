@@ -9,9 +9,13 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -28,6 +32,7 @@ import javax.swing.border.TitledBorder;
 import com.toedter.calendar.JCalendar;
 
 import mx.csam.certificados.utilerias.constantes.CertificadosUtils;
+import mx.csam.certificados.utilerias.pojo.WriteCertificadosPOJO;
 
 public class WriteFormulario /*extends JDialog*/ {
 
@@ -98,6 +103,8 @@ public class WriteFormulario /*extends JDialog*/ {
 	private JButton btnFecVigSer = new JButton();
 	private JTextField txtFecVigSer = new JTextField();
 	private JComboBox<String> cobFecVigSer = new JComboBox<>();
+	
+	public JCalendar calendario = null;
 	
 	private JLabel lblFecVigSer1 = new JLabel();
 	private JTextField txtFecVigSer1 = new JTextField();	
@@ -186,6 +193,13 @@ public class WriteFormulario /*extends JDialog*/ {
 	
 	//CLASES PARA LAS ACCIONES DE LOS EVENTOS
 	private Eventos eventos =  null;
+	
+	//MENSAJES PARA LOS JOptionPane
+	String texKPG_JOP = "";
+	String texKPG_JOP1 = "";
+	
+	//POJO
+	private WriteCertificadosPOJO pojo = new WriteCertificadosPOJO();
 	
 	static {
 		//dia.setName("dia");
@@ -317,7 +331,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		
 		cobAlg.setModel(
 			new DefaultComboBoxModel<>(
-				CertificadosUtils.algoritmo_asimetrico
+				CertificadosUtils.LISTA_algoritmo_asimetrico
 			)
 		);
 		cobAlg.setSelectedIndex(-1);
@@ -675,7 +689,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		tamAltoTex = getPosicionAlto(lblFecVigSer);
 		
 		//Crea el calendario
-		JCalendar calendario = new JCalendar();
+		calendario = new JCalendar();
 		calendario.setBounds(ancGenInit, tamAltoTex + spaceVer, 200, 200);		
 				
 		/***/
@@ -897,10 +911,11 @@ public class WriteFormulario /*extends JDialog*/ {
 		lblDatosKPG.setText("Seleccione el tamaño de bits: ");
 		lblDatosKPG.setForeground(Color.BLACK);
 		lblDatosKPG.setFont(fteTextos);
-		lblDatosKPG.setBounds(ancGenInit, altGenInit, 440, altLbl);
+		lblDatosKPG.setBounds(ancGenInit, altGenInit, 320, altLbl);
 		lblDatosKPG.setEnabled(true);
 		
-		tamAncTex = getTamanioAnchoTexto(lblDatosKPG);
+		//tamAncTex = getTamanioAnchoTexto(lblDatosKPG);
+		tamAncTex = getPosicionAncho(lblDatosKPG);
 		
 		cobDatosKPG.setEditable(false);
 		cobDatosKPG.setFont(fteTextos);
@@ -920,10 +935,11 @@ public class WriteFormulario /*extends JDialog*/ {
 		lblDatosKPG1.setText("Seleccione el algoritmo simetrico: ");
 		lblDatosKPG1.setForeground(Color.BLACK);
 		lblDatosKPG1.setFont(fteTextos);
-		lblDatosKPG1.setBounds(ancGenInit, tamAltoTex + spaceVer, 440, altLbl);
+		lblDatosKPG1.setBounds(ancGenInit, tamAltoTex + spaceVer, 300, altLbl);
 		lblDatosKPG1.setEnabled(true);
 		
-		tamAncTex = getTamanioAnchoTexto(lblDatosKPG1);
+		//tamAncTex = getTamanioAnchoTexto(lblDatosKPG1);
+		tamAncTex = getPosicionAncho(lblDatosKPG1);
 		
 		cobDatosKPG1.setEditable(false);
 		cobDatosKPG1.setFont(fteTextos);
@@ -989,7 +1005,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		cobCerOrCsr.setFont(fteTextos);
 		cobCerOrCsr.setModel(
 			new DefaultComboBoxModel<String>(
-				CertificadosUtils.formato_tipo_certificado
+				CertificadosUtils.lista_tipo_certificado
 			)
 		);
 		cobCerOrCsr.setSelectedIndex(0);
@@ -1236,6 +1252,10 @@ public class WriteFormulario /*extends JDialog*/ {
 		return i;
 	}
 	
+	public WriteCertificadosPOJO getPojo() {
+		return this.pojo;
+	}
+	
 	private class Eventos implements java.awt.event.ActionListener, ItemListener{
 
 		//private JDialog jDialog = null;
@@ -1253,6 +1273,17 @@ public class WriteFormulario /*extends JDialog*/ {
 		
 		@Override
 		public void actionPerformed(ActionEvent e) {
+			final String texNada = "(No es necesario)";
+			
+			final String[] texKPG_RSA_DSA = {"el tamaño de la Key (en bits):","el algoritmo simetrico:"};
+			final String[] texKPG_EC = {"la curva inicializadora:",texNada};
+			final String[] texKPG_GOST = {"la generación de la curva:","la curva inicializadora:"};
+			final String[] texKPG_Ed25519_Ed448 = {texNada,texNada};
+			
+			
+			final String init_texKPG = "Seleccione ";
+			final String fin_texKPG = " para el cifrado de la Private Key.";
+			
 			
 			if (e.getSource() == jD.cobAlg) {
 				
@@ -1266,24 +1297,14 @@ public class WriteFormulario /*extends JDialog*/ {
 				if (algoritmo == null) {
 					return;
 				}
-				
-				
+								
 				/*RECUPERA LAS LISTAS DE LOS PARAMETROS DE c/ALGORITMO 
 				 *  CertificadosUtils.listaParametrosKPG()*/
-				
-				/*Map<String, LinkedHashMap<String, List<String>>> lista =
-					CertificadosUtils.listaParametrosKPG();*/
-							    
 			    LinkedHashMap<String, List<String>> params = lista.get(algoritmo);
 			    
 			    // Pasarle un arreglo vacío le indica a Java el tipo exacto que debe retornar
 			    String[] arreglo = params.keySet().toArray(new String[0]);
-			    
-			    /*LIMPIEZA DEL cobDatosKPG1 */			    
-			    jD.cobDatosKPG1.setModel(new DefaultComboBoxModel<String>());
-			    jD.cobDatosKPG1.setSelectedIndex(-1);//No es necesario
-			    jD.cobDatosKPG1.setEnabled(false);
-			    
+			    			    
 			    /*CARGAR DATOS A cobDatosKPG 
 			     * SIN CONSERVAR LA SELECCION ANTERIOR */			    
 			    jD.cobDatosKPG.setModel(
@@ -1293,6 +1314,12 @@ public class WriteFormulario /*extends JDialog*/ {
 	    		);
 			    jD.cobDatosKPG.setSelectedIndex(-1);
 			    jD.cobDatosKPG.setEnabled(true);
+			    
+		   
+			    /*LIMPIEZA DEL cobDatosKPG1 */			    
+			    jD.cobDatosKPG1.setModel(new DefaultComboBoxModel<String>());
+			    jD.cobDatosKPG1.setSelectedIndex(-1);//No es necesario
+			    jD.cobDatosKPG1.setEnabled(false);
 			    
 			    //Habilitar campo de la Salt
 				if(algoritmo.equals("RSA-PSS")) {
@@ -1305,6 +1332,39 @@ public class WriteFormulario /*extends JDialog*/ {
 					jD.txtDatosKPG.setBackground(Color.DARK_GRAY);
 					jD.txtDatosKPG.setText("");
 				}
+				
+				
+				/*CAMBIAR ETIQUETAS ADJUNTAS A cobDatosKPG y cobDatosKPG1*/
+			    
+			    if (algoritmo.contains(CertificadosUtils.alg_RSA) 
+			    	|| algoritmo.contains(CertificadosUtils.alg_DSA)) 
+			    {
+					jD.lblDatosKPG.setText(init_texKPG + texKPG_RSA_DSA[0]);
+					jD.lblDatosKPG1.setText(init_texKPG + texKPG_RSA_DSA[1]);
+					
+					jD.texKPG_JOP = init_texKPG + texKPG_RSA_DSA[0] + fin_texKPG;
+					jD.texKPG_JOP1 = init_texKPG + texKPG_RSA_DSA[1] + fin_texKPG;
+				} 
+			    else if(algoritmo.contains(CertificadosUtils.alg_EC)) 
+			    {
+					jD.lblDatosKPG.setText(init_texKPG + texKPG_EC[0]);
+					jD.lblDatosKPG1.setText(texKPG_EC[1]); 
+					
+					jD.texKPG_JOP = init_texKPG + texKPG_EC[0] + fin_texKPG;
+					jD.texKPG_JOP1 = "";
+				}
+			    else if(algoritmo.contains(CertificadosUtils.alg_GOST)) 
+			    {
+			    	jD.lblDatosKPG.setText(init_texKPG + texKPG_GOST[0]);
+			    	jD.lblDatosKPG1.setText(init_texKPG + texKPG_GOST[1]); 
+			    	
+			    	jD.texKPG_JOP = init_texKPG + texKPG_GOST[0] + fin_texKPG;
+			    	jD.texKPG_JOP1 = init_texKPG + texKPG_GOST[1] + fin_texKPG;
+			    }
+			    else {
+			    	jD.lblDatosKPG.setText(texKPG_Ed25519_Ed448[0]);
+			    	jD.lblDatosKPG1.setText(texKPG_Ed25519_Ed448[1]); 
+			    }
 			}
 			
 			if (e.getSource() == jD.cobDatosKPG) {
@@ -1345,11 +1405,7 @@ public class WriteFormulario /*extends JDialog*/ {
 				);
 				jD.cobDatosKPG1.setSelectedIndex(-1);
 				jD.cobDatosKPG1.setEnabled(true);
-			}
-			
-			if (e.getSource() == jD.btnCancel) {
-				jD.dia.dispose();
-			}
+			}					
 			
 			if (e.getSource() == jD.chbDNemisor) {
 				System.out.println("Se ejecutó itemStateChanged()");
@@ -1375,6 +1431,8 @@ public class WriteFormulario /*extends JDialog*/ {
 			
 			if (e.getSource() == jD.btnOK) {							
 			
+				String tmp_str;
+				
 				//-----------------------------------------------------------------
 				//DATOS JPANEL ALGORITMO
 				
@@ -1387,27 +1445,182 @@ public class WriteFormulario /*extends JDialog*/ {
 					);
 					return;
 				}
-	
+				String algoritmo = (String)jD.cobAlg.getSelectedItem();				
+				
+				//Más operaciones pero no hay casteo, es más puro
+				int index = jD.cobAlg.getSelectedIndex();
+				algoritmo = jD.cobAlg.getItemAt(index);				
+				
+				jD.pojo.setAlgoritmo(algoritmo);
+				
 				//-----------------------------------------------------------------
 				//DATOS JPANEL DN USUARIO
+				
+				String[] titularDN = new String[6];
+				
+				//titularDN[0]=( !jD.txtDNusuario.getText().isBlank() ) ? jD.txtDNusuario.getText() : "";
+				//titularDN[1]=( !jD.txtDNusuario1.getText().isBlank() ) ? jD.txtDNusuario1.getText() : "";
+
+				titularDN[0]=( jD.txtDNusuario.getText() ) ;
+				titularDN[1]=( jD.txtDNusuario1.getText() ) ;
+				titularDN[2]=( jD.txtDNusuario2.getText() ) ;
+				titularDN[3]=( jD.txtDNusuario3.getText() ) ;
+				titularDN[4]=( jD.txtDNusuario4.getText() ) ;
+				titularDN[5]=( jD.txtDNusuario5.getText() ) ;
+				
+				jD.pojo.setTitularDN(titularDN);
 				
 				//-----------------------------------------------------------------
 				//DATOS JPANEL DN EMISOR
 				
-	
+				String[] emisorDN = new String[6];
 				
+				//emisorDN[0]=( !jD.txtDNemisor.getText().isBlank() ) ? jD.txtDNemisor.getText() : "";
+				//emisorDN[1]=( !jD.txtDNemisor1.getText().isBlank() ) ? jD.txtDNemisor1.getText() : "";
+
+				if( !jD.chbDNemisor.isSelected()) {					
+					emisorDN[0]=( jD.txtDNemisor.getText() ) ;
+					emisorDN[1]=( jD.txtDNemisor1.getText() ) ;
+					emisorDN[2]=( jD.txtDNemisor2.getText() ) ;
+					emisorDN[3]=( jD.txtDNemisor3.getText() ) ;
+					emisorDN[4]=( jD.txtDNemisor4.getText() ) ;
+					emisorDN[5]=( jD.txtDNemisor5.getText() ) ;
+					
+					jD.pojo.setEmisorDN(emisorDN);
+				}else {
+					jD.pojo.setEmisorDN(titularDN);
+				}
 				
 				//-----------------------------------------------------------------
 				//DATOS JPANEL FECHA VIGENCIA Y SERIAL
 				
+				//Obtiene la fecha del JCalendar
+				Date fecha_inicio_validez = jD.calendario.getDate();
+				
+				//TimeZone.setDefault(TimeZone.getTimeZone(ZoneOffset.UTC));	
+				
+				//Para Formatear la fecha estilo "2020-07-01T12:00:00+02:00"
+				DateTimeFormatter formatter =
+		                DateTimeFormatter.
+		                ofPattern("yyyy-MM-dd 'T' HH:mm:ssxxx")
+		                .withZone(ZoneOffset.UTC);
+				
+				String f_inicio_validez = formatter.format(fecha_inicio_validez.toInstant());
+				
+				/* _fecha debe tener el formato:
+				 * [0]_[1]_[2]_[3]_[4]_[5]_[6]
+				 * 
+				 * Diccionario del String[] 
+				 *		[0]: años
+				 *		[1]: dias
+				 *		[2]: horas
+				 *		[3]: minutos
+				 *		[4]: segundos
+				 *		[5]: milisegundos
+				*/
+				String f_fin_vigencia = "[0]_[1]_[2]_[3]_[4]_[5]"
+						.replace("[0]", ( txtFecVigSer1.getText().isBlank() ) ? "0" : txtFecVigSer1.getText())
+						.replace("[1]", ( txtFecVigSer2.getText().isBlank() ) ? "0" : txtFecVigSer2.getText())
+						.replace("[2]", ( txtFecVigSer3.getText().isBlank() ) ? "0" : txtFecVigSer3.getText())
+						.replace("[3]", ( txtFecVigSer4.getText().isBlank() ) ? "0" : txtFecVigSer4.getText())
+						.replace("[4]", ( txtFecVigSer5.getText().isBlank() ) ? "0" : txtFecVigSer5.getText())
+						.replace("[5]", ( txtFecVigSer6.getText().isBlank() ) ? "0" : txtFecVigSer6.getText())
+						;
+				
+				String serial = (txtFecVigSer7.getText().isBlank() ) ? null : txtFecVigSer7.getText();
+				
+				
+				/*String[] vig_y_serial:
+				 * 
+				 * [0]: No de serial
+				 * [1]: Fecha de inicio de validez
+				 * [2]: Fecha de fin de vigencia
+				 * */
+				String[] vig_y_serial = new String[3];
+				
+				vig_y_serial[0] = serial;
+				vig_y_serial[1] = f_inicio_validez.replaceAll(" ", "");
+				vig_y_serial[2] = f_fin_vigencia;
+				
+				jD.pojo.setFecha_vig_y_serial(vig_y_serial);
+				
 				//-----------------------------------------------------------------
 				//DATOS JPANEL DATOS KEY PAIR GENERATOR
+
+				/* 
+				 * Los parametros del arreglo datosKPG son nombrados de la sig. forma:
+				 * 
+				 * [0] tamClaveBits_o_curvaInit
+				 * [1] tamSHA_o_genCurva
+				 * [2] salt
+				 * 
+				 * --------------------------------------------------------
+				 * ALGORITMO	|Param 1		|Param 2		|Param 3
+				 * --------------------------------------------------------
+				 * RSA-PSS		|Tam Clave BITS	|Tam Hash SHA	|Salt
+				 * RSA			|Tam Clave BITS	|Tam Hash SHA	|
+				 * DSA			|Tam Clave BITS	|				|
+				 * GOST			|Curva Init 	|Gen Curva		|	 
+				 * EC			|Curva Init		|				|
+				 * Ed25519		|			 	|				|	 
+				 * Ed448		|				|				|	 
+				 * ---------------------------------------------------------
+				 * */
+				
+				if(jD.cobDatosKPG.getSelectedIndex() == -1 &&
+					( algoritmo.contains(CertificadosUtils.alg_RSA) 
+						|| algoritmo.contains(CertificadosUtils.alg_DSA) 
+						|| algoritmo.contains(CertificadosUtils.alg_EC)
+						|| algoritmo.contains(CertificadosUtils.alg_GOST)
+					) 
+				) {
+					JOptionPane.showMessageDialog(
+						null, 
+						//"Seleccione el tamaño de la Key (en bits) para el cifrado de la Private Key.",
+						jD.texKPG_JOP,
+						"Requerido",
+						JOptionPane.ERROR_MESSAGE
+					);
+					return;
+				}
+				else if (jD.cobDatosKPG1.getSelectedIndex() == -1 &&
+					( algoritmo.contains(CertificadosUtils.alg_RSA) 
+						|| algoritmo.contains(CertificadosUtils.alg_GOST)
+					)
+				){
+					JOptionPane.showMessageDialog(
+						null, 
+						//"Seleccione el algoritmo símetrico para el cifrado de la Private Key.",
+						jD.texKPG_JOP1,
+						"Requerido",
+						JOptionPane.ERROR_MESSAGE
+					);
+					return;
+				}
+				else if (jD.txtDatosKPG.getText().isBlank() &&
+					algoritmo.equals(CertificadosUtils.alg_RSAPSS)
+				){
+					JOptionPane.showMessageDialog(
+						null, 
+						"Ingrese un tamaño para la sal",
+						"Requerido",
+						JOptionPane.ERROR_MESSAGE
+					);
+					return;
+				}
+				
+				String[] datosKPG = new String[3];
+				datosKPG[0] = (String)jD.cobDatosKPG.getSelectedItem();
+				datosKPG[1] = (String)jD.cobDatosKPG1.getSelectedItem();
+				datosKPG[2] = ( jD.txtDatosKPG.getText().isBlank() ) ? "0" : jD.txtDatosKPG.getText();
+				
+				jD.pojo.setDatosKPG(datosKPG);
 				
 				//-----------------------------------------------------------------
 				//DATOS JPANEL CERTIFICADO O CSR
 				if(jD.cobCerOrCsr.getSelectedIndex() == -1) {
 					JOptionPane.showMessageDialog(
-						null, 
+						jD.dia, 
 						"Seleccione el tipo de archivo para el certificado",
 						"Requerido",
 						JOptionPane.ERROR_MESSAGE
@@ -1415,15 +1628,78 @@ public class WriteFormulario /*extends JDialog*/ {
 					return;
 				}
 				
+				//true = .cer (Certificado), false = .csr (CSR)
+				tmp_str = (String)(jD.cobCerOrCsr.getSelectedItem());
+				boolean b = ((tmp_str).contains(CertificadosUtils.formato_tipo_cer) ) ? true : false;
+				
+				jD.pojo.setCerOrCsr(b);
+				
 				//-----------------------------------------------------------------
 				//DATOS JPANEL DATOS DE CIFRADO DE LA PRIVATE KEY
+				if(jD.cobDatosCifrado.getSelectedIndex() == -1 &&
+					jD.chbDatosCifrado.isSelected()
+				) {
+					JOptionPane.showMessageDialog(
+						jD.dia, 
+						"Seleccione el algoritmo para cifrar la contraseña de la Private Key.",
+						"Requerido",
+						JOptionPane.ERROR_MESSAGE
+					);
+					return;
+				}else if (jD.txtDatosCifrado.getText().isBlank() &&
+					jD.chbDatosCifrado.isSelected()
+				) {
+					JOptionPane.showMessageDialog(
+						jD.dia, 
+						"Ingrese una contraseña. No puede dejar este campo vacío.",
+						"Requerido",
+						JOptionPane.ERROR_MESSAGE
+					);
+					return;
+				}
+				
+				Object[] datos_pk = new Object[3]; 
+				
+				datos_pk[0] = jD.chbDatosCifrado.isSelected();
+				if(jD.chbDatosCifrado.isSelected()) {
+					datos_pk[1] = (String)jD.cobDatosCifrado.getSelectedItem();
+					datos_pk[2] = jD.txtDatosCifrado.getText();
+				}else {
+					datos_pk[1] = null;//"";
+					datos_pk[2] = null;//"";
+				}
+				
+				jD.pojo.setDatosPKCifrado(datos_pk); 
 				
 				//-----------------------------------------------------------------
 				//DATOS JPANEL CODIFICACION DEL ARCHIVO
+				if(jD.cobCodifArch.getSelectedIndex() == -1) {
+					JOptionPane.showMessageDialog(
+						null, 
+						"Seleccione el tipo de codificación que tendrán los archivos.",
+						"Requerido",
+						JOptionPane.ERROR_MESSAGE
+					);
+					return;
+				}
 				
+				tmp_str = (String)jD.cobCodifArch.getSelectedItem();
+				
+				jD.pojo.setCodif_archivo( (String)jD.cobCodifArch.getSelectedItem() );
 				//-----------------------------------------------------------------
 				//DATOS JPANEL BOTONES
 				
+				/*System.out.println(
+					jD.pojo.toString()					
+				);*/
+				
+				jD.pojo.set_SAN(null);
+				
+				jD.dia.dispose();
+			}
+			
+			if (e.getSource() == jD.btnCancel) {
+				jD.dia.dispose();
 			}
 		}
 

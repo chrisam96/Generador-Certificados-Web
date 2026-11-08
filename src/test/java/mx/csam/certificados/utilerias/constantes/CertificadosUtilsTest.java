@@ -32,7 +32,7 @@ class CertificadosUtilsTest {
 	@Order(value = 1)
 	@DisplayName("Lista de algoritmos")
 	void test() {
-		String[] algoritmo_asimetrico = CertificadosUtils.algoritmo_asimetrico;
+		String[] algoritmo_asimetrico = CertificadosUtils.LISTA_algoritmo_asimetrico;
 		
 		//se supone hacen lo mismo
 		assertThat(algoritmo_asimetrico).isNotNull(); //assertThat(cheese, is(not(nullValue(X.class))))

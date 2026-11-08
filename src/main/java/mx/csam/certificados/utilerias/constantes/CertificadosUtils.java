@@ -50,7 +50,15 @@ public final class CertificadosUtils {
 	}
 	
 	//Tipo de Algoritmo Asímetrico 
-	public final static String [] algoritmo_asimetrico = {"RSA", "DSA", "EC", "Ed25519", "Ed448", "GOST", "RSA-PSS" };	
+	public final static String [] LISTA_algoritmo_asimetrico = {"RSA", "DSA", "EC", "Ed25519", "Ed448", "GOST", "RSA-PSS" };	
+	public final static String alg_RSA = "RSA";	
+	public final static String alg_DSA = "DSA";	
+	public final static String alg_EC = "EC";	
+	public final static String alg_Ed25519 = "Ed25519";	
+	public final static String alg_Ed448 = "Ed448";	
+	public final static String alg_GOST = "GOST";	
+	public final static String alg_RSAPSS = "RSA-PSS";	
+	public final static String alg_ = "" ;	
 	
 	// --------------------------------------------------------------------
 	// INICIALIZADORES PARA KEY_PAIR_GENERATOR		
@@ -100,7 +108,7 @@ public final class CertificadosUtils {
 		LinkedHashMap<String, List<String>> sublista = null;//new HashMap <String, List<String>>();
 		
 		//Algoritmo
-		for (String alg : algoritmo_asimetrico) {
+		for (String alg : LISTA_algoritmo_asimetrico) {
 			String key = alg;
 					
 			switch (key) {
@@ -1000,8 +1008,10 @@ public final class CertificadosUtils {
 	@Deprecated
 	public static String [] formato_extension_CSR = {".csr"};
 	
-	public static String [] formato_tipo_certificado = {"Certificado (.cer)", "Solicitud de Firma de Certificado (.csr)"};
+	public static String [] lista_tipo_certificado = {"Certificado (.cer)", "Solicitud de Firma de Certificado (.csr)"};
 	
+	public static String formato_tipo_cer = ".cer";
+	public static String formato_tipo_csr = ".csr";
 	// --------------------------------------------------------------------
 	// VALORES DEL SANs	
 	

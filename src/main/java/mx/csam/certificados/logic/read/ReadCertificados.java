@@ -40,7 +40,6 @@ import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCS8EncryptedPrivateKeyInfo;
 import org.bouncycastle.pkcs.PKCSException;
 
-import jakarta.annotation.Nullable;
 import mx.csam.certificados.utilerias.RegistradorEventos;
 import mx.csam.certificados.utilerias.constantes.CertificadosUtils;
 
@@ -55,28 +54,28 @@ public class ReadCertificados {
 	}
 	
 	public ArrayList<Object> leerArchivos(
-		String certiRuta, String privKRuta, String pubKRuta, @Nullable String passPK)
+		String certiRuta, String privKRuta, String pubKRuta, /*@Nullable*/ String passPK)
 		throws IllegalArgumentException, OperatorCreationException, IOException, 
 		PKCSException, CertificateException, NoSuchProviderException, PEMException
 	{	
 		
 		if (certiRuta == null || certiRuta.isBlank()) {
 			throw new IllegalArgumentException("""
-				El Certificado no puede estar vacia. "
+				El Certificado no puede estar vacia.
 				Favor de seleccionar un archivo.
 			""");
 		}
 		
 		if (privKRuta == null || privKRuta.isBlank()) {
 			throw new IllegalArgumentException("""
-				La Private Key no puede estar vacia. "
+				La Private Key no puede estar vacia.
 				Favor de seleccionar un archivo.
 			""");
 		}
 		
-		if (privKRuta == null || privKRuta.isBlank()) {
+		if (pubKRuta == null || pubKRuta.isBlank()) {
 			throw new IllegalArgumentException("""
-				La Public Key no puede estar vacia. "
+				La Public Key no puede estar vacia.
 				Favor de seleccionar un archivo.
 			""");
 		}
@@ -137,6 +136,7 @@ public class ReadCertificados {
 		PublicKey pubk = null;		
 		pubk = leerPublicKey(pubKRuta);
 		
+		//-----------------------------------------------------------------------------------------
 		// PRUEBAS CRIPTOGRAFICAS
 		
 		//Verificar que el Certificado este vigente
@@ -144,12 +144,21 @@ public class ReadCertificados {
 			throw new IllegalArgumentException("Fechas del certificado ya no son validas");
 		}
 		
+		RegistradorEventos.registarMensajeAlGUI("Comprobando la vigencia del Certificado...");
+		RegistradorEventos.registarMensajeAlGUI("El Certificado es aún vigente");
+		
+		//-----------------------------------------------------------------------------------------
 		//Verificar q' PublicKey externa == PublicKey del certificado
 		if(!validarParPublicKeys(certi, pubk)) {
 			throw new IllegalArgumentException("La PublicKey no corresponde al "
 					+ "Certificado");
 		}
 		
+		RegistradorEventos.registarMensajeAlGUI("Verificando que la Public Key externa sea criptográficamente igual a la Public Key contenida en el Certificado...");
+		RegistradorEventos.registarMensajeAlGUI("Ambas Public Keys son criptográficamente iguales.");
+		
+		
+		//-----------------------------------------------------------------------------------------
 		System.out.println("algoritmo de firma" + (String)listaObjsCert.get(1));
 		System.out.println("OID algoritmo de firma" + (String)listaObjsCert.get(2));
 		
@@ -158,6 +167,10 @@ public class ReadCertificados {
 			throw new IllegalArgumentException("Las keys no corresponden entre sí");
 		}
 		
+		RegistradorEventos.registarMensajeAlGUI("Comprobando que la Public Key externa corresponda a la Private Key externa...");
+		RegistradorEventos.registarMensajeAlGUI("Ambas Keys son correspondientes.");
+		
+		//-----------------------------------------------------------------------------------------
 			//Saca la PublicKey del Certificado
 		PublicKey pubKCerti = certi.getPublicKey();
 		
@@ -166,12 +179,22 @@ public class ReadCertificados {
 			throw new IllegalArgumentException("Las keys (del certificado) y private no corresponden entre sí");
 		}
 		
+		RegistradorEventos.registarMensajeAlGUI("Comprobando que la Private Key externa sea correspondiente a la Public Key contenida en el Certificado...");
+		RegistradorEventos.registarMensajeAlGUI("Ambas Public Keys son correspondientes.");
+		
+		
+		//-----------------------------------------------------------------------------------------
 		//Validar criptograficamente la firma del Certificado con la PublicKey externa 
 		if(!validarFirmaDelCertificado(certi, pubk) ) {
 			throw new IllegalArgumentException("La firma del certificado  es diferente a la representada con la PublicKey externa");
 		}
 		
+		RegistradorEventos.registarMensajeAlGUI("Validando criptograficamente la firma del Certificado con la PublicKey externa...");
+		RegistradorEventos.registarMensajeAlGUI("La firma es válida.");		
+		
+		RegistradorEventos.registarMensajeAlGUI("Agregando la Private Key a memoria...");		
 		listaObjsCert.add(privk);
+		RegistradorEventos.registarMensajeAlGUI("Agregando la Public Key a memoria...");				
 		listaObjsCert.add(pubk);
 		
 		return listaObjsCert;
@@ -240,6 +263,7 @@ public class ReadCertificados {
 		    	"Número de serie: " + cert.getSerialNumber() + "\n" +
 		    	//Firma del Certificado
 		    	"Algoritmo de firma: " + cert.getSigAlgName() + "\n" +
+		    	"OID del Algoritmo de firma: " + cert.getSigAlgOID() + "\n" +
 		    	
 		    	//Info del Distinguished Name (DN)
 		    	"Sujeto: " + cert.getSubjectX500Principal() + "\n" +
@@ -266,7 +290,7 @@ public class ReadCertificados {
 			//1: Algoritmo de Firma (String)
 			resul.add(cert.getSigAlgName());
 			//2: Identificador OID del Algoritmo de Firma (String)
-			resul.add(cert.getSigAlgName());
+			resul.add(cert.getSigAlgOID());
 			//3: Public Key (java.security.PublicKey)
 			resul.add(cert.getPublicKey());
 			//4: Algoritmo de Public Key (String)
