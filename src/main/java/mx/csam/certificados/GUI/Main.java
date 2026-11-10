@@ -6,10 +6,13 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.Rectangle;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -28,10 +31,12 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
-import org.bouncycastle.openssl.PEMException;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.pkcs.PKCSException;
 
@@ -52,7 +57,7 @@ public class Main extends JFrame {
 	public WriteFormulario wf = null;
 
 	//private JFrame ven =  new JFrame();
-	private static JFrame ven =  null;
+	private JFrame ven =  null;
 	private JScrollPane scrollEscritura = new JScrollPane();
 	private JScrollPane scrollLectura = new JScrollPane();
 	private JPanel panelEscritura;// = new JPanel();
@@ -63,11 +68,11 @@ public class Main extends JFrame {
 	private final JTextField txtCerti = new JTextField("");
 	private final JTextField txtPubK = new JTextField("");
 	private final JTextField txtPriK = new JTextField("");
+	private JButton btnEscritura;
 	
 	private final JLabel lblPanelLectura = new JLabel("");
 	private final JTextArea txA_Lectura = new JTextArea();
-
-	private JButton btnEscritura;
+	public JScrollPane scrollTxtArea;
 	
 	private JLabel lblCargarCer = new JLabel("");
 	public JButton btnCargarCer = new JButton("");
@@ -113,7 +118,8 @@ public class Main extends JFrame {
 	private int ancTxtArea = 640;
 	private int altTxtArea = 440;
 	
-	private int posY_LblPanelLectura = -1;
+	private int posY_compsPanelLectura = -1;
+	private int posX_compsPanelLectura = 650;
 	
 	private int ancLblPanelLectura = 140;
 	private int ancTxtPanelLectura = 650;
@@ -153,11 +159,12 @@ public class Main extends JFrame {
 	//Archivos
 	public File arch_cert = null;
 	public File arch_prik = null;
-	public File arch_pubk = null;	
+	public File arch_pubk = null;
+	private String directorio = "";
 	
 	//Lógica
 	private ReadCertificados rc = new ReadCertificados();
-	private RegistradorEventos re = new RegistradorEventos();
+	//private RegistradorEventos re = new RegistradorEventos();
 	private WriteCertificados wc = new WriteCertificados();
 	@Deprecated
 	public CertificadoWriteGUIRecord rec = null;	
@@ -196,6 +203,15 @@ public class Main extends JFrame {
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+
+		try {
+			setGlobalLookAndFeel();
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e) {
+		}
+		
+		//directorio = setDirectorio();
+		directorio = "D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key";
 		
 		//-----------------------------------------------------------------
 		//DATOS DE JFRAME
@@ -221,6 +237,8 @@ public class Main extends JFrame {
 		Eventos eventos = new Eventos(this);
 		
 		Rectangle rVen = ven.getContentPane().getBounds();
+		
+		
 		
 		/*NOTAS:
 		 * >> Contenedores internos de los componentes:
@@ -322,20 +340,52 @@ public class Main extends JFrame {
 				
 				//Escribir los archivos
 				try {
-					Object[] lista = wc.generarCertificadoOrCsr(
-						pojo.getAlgoritmo(), 
-						pojo.getTitularDN(), 
-						pojo.getEmisorDN(), 
-						pojo.getFecha_vig_y_serial(), 
-						pojo.getDatosKPG(), 
-						pojo.getCerOrCsr(), 
-						pojo.getDatosPKCifrado(), 
-						pojo.getCodif_archivo(), 
-						pojo.get_SAN()
-					);
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
+					if( !wf.fueCancelado() ) {
+						Object[] lista = wc.generarCertificadoOrCsr(
+							pojo.getAlgoritmo(), 
+							pojo.getTitularDN(), 
+							pojo.getEmisorDN(), 
+							pojo.getFecha_vig_y_serial(), 
+							pojo.getDatosKPG(), 
+							pojo.getCerOrCsr(), 
+							pojo.getDatosPKCifrado(), 
+							pojo.getCodif_archivo(), 
+							pojo.get_SAN()
+						);
+						
+						txtCerti.setText( ((Path)(lista[5])).toFile().getName() );
+						txtPriK.setText( ((Path)(lista[6])).toFile().getName() );
+						txtPubK.setText( ((Path)(lista[7])).toFile().getName());
+						//txtPubK.setText( ((Path)(lista[5])).toAbsolutePath().toString());
+						
+						
+						System.out.println( "RUTAS:\n\n\n");
+						System.out.println("\n (Path)(lista[5]): \n"+ ( (Path)(lista[5]) ) );
+						System.out.println("\n (Path)(lista[5]).getFileName(): \n"+ ( (Path)(lista[5]) ).getFileName());
+						System.out.println("\n (Path)(lista[5]).getFileName().toString(): \n"+ ( (Path)(lista[5]) ).getFileName().toString());
+	
+						System.out.println("\n (Path)(lista[5]).toAbsolutePath(): \n"+ ( (Path)(lista[5]) ).toAbsolutePath());
+						System.out.println("\n (Path)(lista[5]).toAbsolutePath().getFileName(): \n"+ ( (Path)(lista[5]) ).toAbsolutePath().getFileName() );
+						                    
+						System.out.println("\n (Path)(lista[5]).toFile().getName(): \n"+ ( (Path)(lista[5]) ).toFile().getName() );
+	                                        
+						System.out.println("\n (Path)(lista[5]).toFile().getCanonicalFile().getAbsolutePath(): \n"+ ( (Path)(lista[5]) ).toFile().getCanonicalFile().getAbsolutePath() );
+						System.out.println("\n (Path)(lista[5]).toFile().getCanonicalFile().getCanonicalPath(): \n"+ ( (Path)(lista[5]) ).toFile().getCanonicalFile().getCanonicalPath() );
+						System.out.println("\n (Path)(lista[5]).toFile().getCanonicalFile().getName(): \n"+ ( (Path)(lista[5]) ).toFile().getCanonicalFile().getName() );
+						System.out.println("\n (Path)(lista[5]).toFile().getCanonicalFile().getPath(): \n"+ ( (Path)(lista[5]) ).toFile().getCanonicalFile().getPath() );
+						                                     
+						System.out.println("\n (Path)(lista[5]).toFile().getAbsoluteFile().getAbsolutePath(): \n"+ ( (Path)(lista[5]) ).toFile().getAbsoluteFile().getAbsolutePath() );
+						System.out.println("\n (Path)(lista[5]).toFile().getAbsoluteFile().getCanonicalPath(): \n"+ ( (Path)(lista[5]) ).toFile().getAbsoluteFile().getCanonicalPath() );
+						System.out.println("\n (Path)(lista[5]).toFile().getAbsoluteFile().getName(): \n"+ ( (Path)(lista[5]) ).toFile().getAbsoluteFile().getName() );
+						System.out.println("\n (Path)(lista[5]).toFile().getAbsoluteFile().getPath(): \n"+ ( (Path)(lista[5]) ).toFile().getAbsoluteFile().getPath() );
+					}else {
+						System.out.println("Fue cancelado por el usuario.");
+						RegistradorEventos.registarMensajeAlGUI("Fue cancelado por el usuario.");
+					}
+					
+				} catch (Exception e1) {					
 					e1.printStackTrace();
+					RegistradorEventos.registarExcepcionAlGUI("Fallo al crear o mantener el Dialogo \"WriteFormulario\"", e1.getMessage());
 				}
 			}
 		});
@@ -403,26 +453,39 @@ public class Main extends JFrame {
 				
 		txA_Lectura.setEditable(false);
 		txA_Lectura.setEnabled(true);
-		//txA_Lectura.setText("Sexo");
+		txA_Lectura.setAutoscrolls(true);
 		txA_Lectura.setFont(fteTextos);
 		txA_Lectura.setBounds(10, 40 , ancTxtArea, altTxtArea);
-		
+		// Opcional: Hacer que el texto se ajuste al ancho del área
+        txA_Lectura.setLineWrap(true);
+        txA_Lectura.setWrapStyleWord(true);
+        
+        
+        scrollTxtArea = new JScrollPane(
+        	txA_Lectura,
+        	JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
+            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+        );
+		Rectangle rTxArea = new Rectangle(10, 40, ancTxtArea - 50, altTxtArea - 50);
+		scrollTxtArea.setBounds(rTxArea);
+		//scrollTxtArea.a
+        
 		//-----------------------------------------------------------------
 				
 		lblCargarCer.setText("Cargar Certificado");
 		lblCargarCer.setForeground(Color.BLACK);
 		lblCargarCer.setFont(fteTextos);
-		lblCargarCer.setBounds(680, altGenInit, ancLblPanelLectura, altLbl);
+		lblCargarCer.setBounds(posX_compsPanelLectura, altGenInit, ancLblPanelLectura, altLbl);
 		
 		
-		posY_LblPanelLectura = lblCargarCer.getY() + lblCargarCer.getHeight();
+		posY_compsPanelLectura = lblCargarCer.getY() + lblCargarCer.getHeight();
 		btnCargarCer.setText("cargar");
 		btnCargarCer.setName("btnCargarCer");
 		btnCargarCer.addActionListener(eventos);
-		btnCargarCer.setBounds(680, posY_LblPanelLectura, 84, altBtn);
+		btnCargarCer.setBounds(posX_compsPanelLectura, posY_compsPanelLectura, 84, altBtn);
 		
 		
-		posY_LblPanelLectura = btnCargarCer.getY() + btnCargarCer.getHeight();
+		posY_compsPanelLectura = btnCargarCer.getY() + btnCargarCer.getHeight();
 		txtCargarCer.setText("[Seleccione un archivo]");
 		txtCargarCer.setForeground(Color.GRAY);
 		txtCargarCer.setBackground(Color.WHITE);
@@ -432,29 +495,29 @@ public class Main extends JFrame {
 		txtCargarCer.setBorder(null); // Quita el borde de caja de texto
 		txtCargarCer.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCargarCer.setFocusable(true);// Permite que el usuario haga clic para seleccionar
-		txtCargarCer.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);
+		txtCargarCer.setBounds(posX_compsPanelLectura, posY_compsPanelLectura, ancTxtPanelLectura, altLbl);
 				
 		
 		//-----------------------------------------------------------------
 		
-		posY_LblPanelLectura = txtCargarCer.getY() + txtCargarCer.getHeight();
-		posY_LblPanelLectura += (altGenInit);		
+		posY_compsPanelLectura = txtCargarCer.getY() + txtCargarCer.getHeight();
+		posY_compsPanelLectura += (altGenInit);		
 		
 		
 		lblCargarPubk.setText("Cargar Public Key");
 		lblCargarPubk.setFont(fteTextos);
 		lblCargarPubk.setForeground(Color.BLACK);
-		lblCargarPubk.setBounds(680, posY_LblPanelLectura, ancLblPanelLectura, altLbl);//110
+		lblCargarPubk.setBounds(posX_compsPanelLectura, posY_compsPanelLectura, ancLblPanelLectura, altLbl);//110
 		
 		
-		posY_LblPanelLectura = lblCargarPubk.getY() + lblCargarPubk.getHeight();
+		posY_compsPanelLectura = lblCargarPubk.getY() + lblCargarPubk.getHeight();
 		btnCargarPubk.setText("cargar");
 		btnCargarPubk.setName("btnCargarPubk");
 		btnCargarPubk.addActionListener(eventos);
-		btnCargarPubk.setBounds(680, posY_LblPanelLectura, 84, altBtn);//130
+		btnCargarPubk.setBounds(posX_compsPanelLectura, posY_compsPanelLectura, 84, altBtn);//130
 		
 		
-		posY_LblPanelLectura = btnCargarPubk.getY() + btnCargarPubk.getHeight();
+		posY_compsPanelLectura = btnCargarPubk.getY() + btnCargarPubk.getHeight();
 		txtCargarPubk.setText("[Seleccione un archivo]");
 		txtCargarPubk.setForeground(Color.GRAY);
 		txtCargarPubk.setBackground(Color.WHITE);
@@ -464,24 +527,24 @@ public class Main extends JFrame {
 		txtCargarPubk.setBorder(null); // Quita el borde de caja de texto
 		txtCargarPubk.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCargarPubk.setFocusable(true);// Permite que el usuario haga clic para seleccionar
-		txtCargarPubk.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);//155
+		txtCargarPubk.setBounds(posX_compsPanelLectura, posY_compsPanelLectura, ancTxtPanelLectura, altLbl);//155
 		
 		
 		//-----------------------------------------------------------------
 		
 		
-		posY_LblPanelLectura = txtCargarPubk.getY() + txtCargarPubk.getHeight();
-		posY_LblPanelLectura += (altGenInit);
+		posY_compsPanelLectura = txtCargarPubk.getY() + txtCargarPubk.getHeight();
+		posY_compsPanelLectura += (altGenInit);
 		
 		
 		lblCargarPrik.setText("Cargar Private Key");
 		lblCargarPrik.setForeground(Color.BLACK);
 		lblCargarPrik.setFont(fteTextos);
-		lblCargarPrik.setBounds(680, posY_LblPanelLectura, ancLblPanelLectura, altLbl);//210
+		lblCargarPrik.setBounds(posX_compsPanelLectura, posY_compsPanelLectura, ancLblPanelLectura, altLbl);//210
 		
 		
 		//JLabel y JTextField de la Contraseña (solo Encrypted Private Key)
-		posY_LblPanelLectura = lblCargarPrik.getY() + lblCargarPrik.getHeight();
+		posY_compsPanelLectura = lblCargarPrik.getY() + lblCargarPrik.getHeight();
 		
 		lblCargarPrik1.setName("lblCargarPrik1");
 		lblCargarPrik1.setText("(Opcional) Contraseña:");
@@ -490,8 +553,8 @@ public class Main extends JFrame {
 		lblCargarPrik1.setFont(fteTextos);
 		int anc_LblCargarPrik1 = getTamanioAnchoTexto(lblCargarPrik1);		
 		lblCargarPrik1.setBounds(
-			680,//posX_LblCargarPrik1 + spaceHor, 
-			posY_LblPanelLectura, 
+			posX_compsPanelLectura,//posX_LblCargarPrik1 + spaceHor, 
+			posY_compsPanelLectura, 
 			anc_LblCargarPrik1, 
 			altLbl //210
 		);
@@ -509,20 +572,20 @@ public class Main extends JFrame {
 		//txtCargarPrik1.setFocusable(true);// Permite que el usuario haga clic para seleccionar
 		txtCargarPrik1.setBounds(
 			posX_LblCargarPrik1, 
-			posY_LblPanelLectura, 
+			posY_compsPanelLectura, 
 			210, 
 			altLbl //210
 		);
 		
-		//posY_LblPanelLectura = lblCargarPrik.getY() + lblCargarPrik.getHeight();
-		posY_LblPanelLectura = lblCargarPrik1.getY() + lblCargarPrik1.getHeight();
+		
+		posY_compsPanelLectura = lblCargarPrik1.getY() + lblCargarPrik1.getHeight();
 		btnCargarPrik.setText("cargar");
 		btnCargarPrik.setName("btnCargarPrik");
 		btnCargarPrik.addActionListener(eventos);
-		btnCargarPrik.setBounds(680, posY_LblPanelLectura,  84, altBtn);//230	
+		btnCargarPrik.setBounds(posX_compsPanelLectura, posY_compsPanelLectura,  84, altBtn);//230	
 		
 		
-		posY_LblPanelLectura = btnCargarPrik.getY() +btnCargarPrik.getHeight();
+		posY_compsPanelLectura = btnCargarPrik.getY() +btnCargarPrik.getHeight();
 		txtCargarPrik.setText("[Seleccione un archivo]");
 		txtCargarPrik.setForeground(Color.GRAY);
 		txtCargarPrik.setBackground(Color.WHITE);
@@ -532,12 +595,12 @@ public class Main extends JFrame {
 		txtCargarPrik.setBorder(null); // Quita el borde de caja de texto
 		txtCargarPrik.setOpaque(false);// Hace el fondo transparente como un JLabel
 		txtCargarPrik.setFocusable(true);// Permite que el usuario haga clic para seleccionar
-		txtCargarPrik.setBounds(680, posY_LblPanelLectura, ancTxtPanelLectura, altLbl);//255
+		txtCargarPrik.setBounds(posX_compsPanelLectura, posY_compsPanelLectura, ancTxtPanelLectura, altLbl);//255
 		
 		
 		//-----------------------------------------------------------------
-		posY_LblPanelLectura = txtCargarPrik.getY() + txtCargarPrik.getHeight();
-		posY_LblPanelLectura += (altGenInit * 2);
+		posY_compsPanelLectura = txtCargarPrik.getY() + txtCargarPrik.getHeight();
+		posY_compsPanelLectura += (altGenInit * 2);
 		
 		
 		btnAnalizar.setText(
@@ -548,7 +611,7 @@ public class Main extends JFrame {
 		);
 		btnAnalizar.setName("btnAnalizar");		
 		btnAnalizar.addActionListener(eventos);
-		btnAnalizar.setBounds(680, posY_LblPanelLectura, 360, (altBtn * 2));//300
+		btnAnalizar.setBounds(posX_compsPanelLectura, posY_compsPanelLectura, 360, (altBtn * 2));//300
 		
 		
 		//-----------------------------------------------------------------
@@ -558,7 +621,7 @@ public class Main extends JFrame {
 		panelLectura.setLayout(null);
 		
 		panelLectura.add(lblPanelLectura);
-		panelLectura.add(txA_Lectura);
+		//panelLectura.add(txA_Lectura);
 		panelLectura.add(lblCargarCer);
 		panelLectura.add(btnCargarCer);
 		panelLectura.add(txtCargarCer);
@@ -571,6 +634,7 @@ public class Main extends JFrame {
 		panelLectura.add(lblCargarPrik1);
 		panelLectura.add(txtCargarPrik1);
 		panelLectura.add(btnAnalizar);
+		panelLectura.add(scrollTxtArea);
 		
 		//panelLectura.setBounds(0,0, rVen.width, 500);
 		//Con esto se fuerza a que aparezcan los scrollbars
@@ -735,6 +799,226 @@ public class Main extends JFrame {
 		return i;
 	}
 	
+	private String setDirectorio() {
+		
+		String osName = System.getProperty("os.name", "valor por default").toLowerCase();
+		String osHomeDirectorio = System.getProperty("user.home", "");
+		
+		/*if (osHomeDirectorio != null && !osHomeDirectorio.isBlank() ) {
+			return osHomeDirectorio;
+		}*/
+		if (osHomeDirectorio == null || osHomeDirectorio.isBlank() ) {
+			return ""; 
+		}		
+		return osHomeDirectorio;
+	}
+	
+	private void setGlobalLookAndFeel() 
+			throws ClassNotFoundException, InstantiationException, 
+			IllegalAccessException,UnsupportedLookAndFeelException
+	{
+		String osName = System.getProperty("os.name", "valor por default").toLowerCase();
+		String osHomeDirectorio = System.getProperty("user.home", "");
+		
+		try {
+			
+			switch (osName) {
+				case String s when s.contains("win") ->{					
+					UIManager.setLookAndFeel(
+						"com.sun.java.swing.plaf.windows.WindowsLookAndFeel"
+					);
+				}
+				case String s when s.contains("mac") 
+					|| s.contains("nux")
+					|| s.contains("nix") 
+				->
+				{
+					UIManager.setLookAndFeel(
+						UIManager.getSystemLookAndFeelClassName()
+					);					
+				}
+				
+				default ->{
+					UIManager.setLookAndFeel(
+					    UIManager.getCrossPlatformLookAndFeelClassName()
+					);				
+				}
+			}
+			
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e) {			
+			e.printStackTrace();
+			RegistradorEventos.registarExcepcionAlGUI("Error LookAndFeel", e.getMessage());
+			throw e;
+		}
+	}
+	
+	public static void changeLookAndFeel(
+	        String lookAndFeel,
+	        Window... windows) {
+
+	    try {
+	        UIManager.setLookAndFeel(lookAndFeel);
+
+	        for (Window window : windows) {
+	            SwingUtilities.updateComponentTreeUI(window);
+	            window.pack();
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    }
+	}
+	
+	private void updateGlobalLookAndFeel(Window... compVen) 
+		throws ClassNotFoundException, InstantiationException, 
+		IllegalAccessException,UnsupportedLookAndFeelException
+	{
+		
+		try {
+			setGlobalLookAndFeel();
+			SwingUtilities.updateComponentTreeUI(this.ven);
+			this.ven.pack();
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e) {			
+			e.printStackTrace();
+			RegistradorEventos.registarExcepcionAlGUI("Error updateLookAndFeel", e.getMessage());
+			throw e;
+		}
+		/* 
+		 * NOTA SEGUN EL JavaDoc
+		 * 
+		 * SwingUtilities.updateComponentTreeUI(Component c);
+		 * 
+		 * A simple minded look and feel change: ask each node in the 
+		 * tree to updateUI()
+		 * -- 
+		 * that is, 
+		 * to initialize its UI property with the current look and feel.
+		
+		Parameters:
+			c [Component] the component
+		 * */
+	}
+	
+	private void updateGlobalLookAndFeelConHilos(Window ... compVen ) 
+	throws ClassNotFoundException, InstantiationException, 
+		IllegalAccessException, UnsupportedLookAndFeelException,
+		InterruptedException
+	{
+		/* NOTAS
+		 * 
+		 * invokeAndWait()
+		 * 
+		 * Conserva las excepciones originales y puedes propagarlas al 
+		 * método que llamó a 
+		 * updateGlobalLookAndFeelUsandoInvokeAndWait().
+		 * 
+		 * invokeLater()
+		 * 
+		 * invokeLater() es asíncrono, por lo que no puedes propagar 
+		 * las excepciones al método que lo invocó
+		 * 
+		 * Aún así, puedes capturarlas y 
+		 * enviarlas a tu registrador de excepciones
+		 * */
+		
+		try {
+			if (SwingUtilities.isEventDispatchThread()) {
+				// Ejecutar directamente.
+				updateGlobalLookAndFeel(compVen);
+			} 
+			else {
+				// Utilizando invokeAndWait().
+				// Estamos fuera del EDT: esperar a que termin
+				updateGlobalLookAndFeelUsandoInvokeAndWait(compVen);
+			}
+		} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException | InterruptedException e) {			
+			//e.printStackTrace();
+			UIManager.setLookAndFeel(
+			    UIManager.getCrossPlatformLookAndFeelClassName()
+			);	
+			throw e;
+		}
+	}
+	
+	private void updateGlobalLookAndFeelUsandoInvokeLater(Window ... compVen) {
+
+	    SwingUtilities.invokeLater(() -> {
+	        try {
+	            setGlobalLookAndFeel();
+	            SwingUtilities.updateComponentTreeUI(this.ven);
+	            //compVen.pack();
+
+	        } 
+	        catch (ClassNotFoundException
+	        	| InstantiationException
+                | IllegalAccessException
+                | UnsupportedLookAndFeelException e) 
+	        {
+
+	            RegistradorEventos.registarExcepcionAlGUI(
+	                "Error updateLookAndFeel",
+	                e.getMessage()
+	            );
+
+	            throw new RuntimeException(e);
+	        }
+	    });
+	}
+	
+	private void updateGlobalLookAndFeelUsandoInvokeAndWait(Window ... compVe)
+	        throws ClassNotFoundException,
+	               InstantiationException,
+	               IllegalAccessException,
+	               UnsupportedLookAndFeelException,
+	               InterruptedException 
+	{
+
+	    try {
+	        SwingUtilities.invokeAndWait(() -> {
+	            try {
+	                setGlobalLookAndFeel();
+	                SwingUtilities.updateComponentTreeUI(this.ven);
+		            //compVen.pack();
+
+	            } catch (ClassNotFoundException
+	                    | InstantiationException
+	                    | IllegalAccessException
+	                    | UnsupportedLookAndFeelException e) {
+
+	                throw new RuntimeException(e);
+	            }
+	        });
+
+	    } catch (InvocationTargetException e) {
+
+	        Throwable causaDelTry = e.getCause();
+
+	        if (causaDelTry instanceof ClassNotFoundException)
+	            throw (ClassNotFoundException) causaDelTry;
+
+	        if (causaDelTry instanceof InstantiationException)
+	            throw (InstantiationException) causaDelTry;
+
+	        if (causaDelTry instanceof IllegalAccessException)
+	            throw (IllegalAccessException) causaDelTry;
+
+	        if (causaDelTry instanceof UnsupportedLookAndFeelException)
+	            throw (UnsupportedLookAndFeelException) causaDelTry;
+
+	        throw new RuntimeException(causaDelTry);
+	    } catch (InterruptedException e) {
+
+            // Restauramos el estado de interrupción del hilo.
+            Thread.currentThread().interrupt();
+
+            // Propagamos la excepción original.
+            throw e;
+		}
+	}
+	
 	
 	private class Eventos implements ActionListener{
 
@@ -752,7 +1036,7 @@ public class Main extends JFrame {
 				//Configurarlo en modo SOLO ARCHIVOS
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				
-				fc.setCurrentDirectory(new File("D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key"));
+				fc.setCurrentDirectory(new File(directorio));
 				
 				//Configura las extensiones permitidas8
 				FileNameExtensionFilter filtro = new FileNameExtensionFilter("Certificado (.cer)", "cer");
@@ -796,9 +1080,10 @@ public class Main extends JFrame {
 					
 					main.txA_Lectura.setText(RegistradorEventos.getUltimoMsjToString());
 					return;
-				}else {
+				}
+				else {
 					main.arch_cert = null;
-					main.txtCargarCer.setText("seleccione un archivo");					
+					main.txtCargarCer.setText("[Seleccione un archivo]");					
 				}
 				
 			}
@@ -810,7 +1095,7 @@ public class Main extends JFrame {
 				//Configurarlo en modo SOLO ARCHIVOS
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				
-				fc.setCurrentDirectory(new File("D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key"));
+				fc.setCurrentDirectory(new File(directorio));
 				
 				//Configura las extensiones permitidas8
 				FileNameExtensionFilter filtro = new FileNameExtensionFilter("Public Key (.key/.pubkey)", "key","pubkey");
@@ -867,7 +1152,7 @@ public class Main extends JFrame {
 				//Configurarlo en modo SOLO ARCHIVOS
 				fc.setFileSelectionMode(JFileChooser.FILES_ONLY);
 				
-				fc.setCurrentDirectory(new File("D:\\eclipse-workspace\\Certificados\\Certificados-y-Private-Key"));
+				fc.setCurrentDirectory(new File(directorio));
 				
 				//Configura las extensiones permitidas8
 				FileNameExtensionFilter filtro = new FileNameExtensionFilter("Private Key (.key)", "key");

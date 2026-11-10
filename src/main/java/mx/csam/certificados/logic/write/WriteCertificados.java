@@ -141,14 +141,17 @@ public class WriteCertificados {
 		
 		//---------------------------------------------------------------------------------------------
 		//ESCRITOR DE ARCHIVOS
+		Path ruta_cer = null;
+		Path ruta_prik = null;
+		Path ruta_pubk = null;
 		
 		//Escritor del Certificado
-		escritorDeArchivos(arch, subfijo+"_certificado_"+algoritmo+"+"+ALG_FIRMA + extension, codif_archivo, cifrado);
+		ruta_cer = escritorDeArchivos(arch, subfijo+"_certificado_"+algoritmo+"+"+ALG_FIRMA + extension, codif_archivo, cifrado);
 		
 		//Escritor de EncryptedPrivateKey
 		if(cifrado) {
 			
-			escritorDeArchivos(pkCifrada, subfijo+"_PrivadaCifrada_"+algoritmo+"+"+ALG_FIRMA + ".key", codif_archivo, cifrado);
+			ruta_prik = escritorDeArchivos(pkCifrada, subfijo+"_PrivadaCifrada_"+algoritmo+"+"+ALG_FIRMA + ".key", codif_archivo, cifrado);
 			//Crear archivo de password
 			escritorDeArchivos(
 				passwordArchivoCifrado(
@@ -163,21 +166,24 @@ public class WriteCertificados {
 		}
 		//Escritor de PrivateKey
 		else {
-			escritorDeArchivos(keyPair.getPrivate(), subfijo+"_Privada_"+algoritmo+"+"+ALG_FIRMA + ".key", codif_archivo, cifrado);
+			ruta_prik = escritorDeArchivos(keyPair.getPrivate(), subfijo+"_Privada_"+algoritmo+"+"+ALG_FIRMA + ".key", codif_archivo, cifrado);
 		}
 		
 		//Escritor de PublicKey
-		escritorDeArchivos(keyPair.getPublic(), subfijo+"_publica_"+algoritmo+"+"+ALG_FIRMA + ".pubkey", codif_archivo, cifrado);
+		ruta_pubk = escritorDeArchivos(keyPair.getPublic(), subfijo+"_publica_"+algoritmo+"+"+ALG_FIRMA + ".pubkey", codif_archivo, cifrado);
 		
 		//---------------------------------------------------------------------------------------------
 		//RETURN DEL METODO		
 		
-		Object[] resultado = new Object[5];
+		Object[] resultado = new Object[8];
 		resultado[0] = arch;//Object: Certificado(.cer) / Certificate Signing Request o Solicitud de Firma de Certificado(.csr)
 		resultado[1] = keyPair;//KeyPair: Llaves Privada y Publica
 		resultado[2] = algoritmo;//String: Algoritmo ASIMETRICO del certificado
-		resultado[3] = ALG_FIRMA;//String: Algoritmo simetrico de la objeto Firmante (Firmador)
+		resultado[3] = ALG_FIRMA;//String: Algoritmo simetrico del objeto Firmante JcaContentSginer (el Firmador)
 		resultado[4] = (pkCifrada!= null) ? pkCifrada: null ;//PemObject: PrivateKey encriptada
+		resultado[5] = ruta_cer;
+		resultado[6] = ruta_prik;
+		resultado[7] = ruta_pubk;
 		
 		return resultado;
 	} 
@@ -1959,9 +1965,16 @@ public class WriteCertificados {
 	 * 
 	 * @param archivo El objeto lógico (es decir la info.) a escribir dentro del archivo
 	 * @param nomArch La ruta con el nombre del archivo a generar
-	 * @param codif_Arch El formato del archivo
+	 * @param codifArch La codificación del formato del archivo
+	 * @param esEncriptado Indica si el archivo a escribir esta encriptado
+	 * @throws CertificateEncodingException 
+	 * @throws IOException 
+	 * @throws IllegalArgumentException
+	 * @return Path 
 	 */
-	public void escritorDeArchivos(Object archivo, String nomArch, String codifArch, boolean esEncriptado) {
+	public Path escritorDeArchivos(Object archivo, String nomArch, String codifArch, boolean esEncriptado) 
+		throws IOException, CertificateEncodingException, IllegalArgumentException
+	{
 		
 		//Crea una carpeta Logica (la referencia) de: PEM/ o DER/
 		Path carpeta = null;
@@ -1977,6 +1990,8 @@ public class WriteCertificados {
 		} catch (IOException e) {
 			System.out.println("No se crearon los directorios contenedores");
 			e.printStackTrace();
+			throw new IOException("No se crearon los directorios contenedores");
+			
 		}
 
 		/*Ruta completa del archivo
@@ -1985,14 +2000,11 @@ public class WriteCertificados {
 		Path rutaArch = carpeta.resolve(nomArch);
 		
 		try(//Objetos para PEM
-			//FileWriter fw = new FileWriter(nomArch);
-			//FileWriter fw = new FileWriter(codifArch+"+++"+nomArch);
 			FileWriter fw = new FileWriter(rutaArch.toFile());
 			JcaPEMWriter writer = new JcaPEMWriter(fw);
-			//Objeto para DER
-			//FileOutputStream fos = new FileOutputStream(codifArch+"+++"+nomArch);			
+			//Objeto para DER			
 			FileOutputStream fos = new FileOutputStream(rutaArch.toFile());			
-			) {
+		) {
 			
 			if(codifArch.equalsIgnoreCase(CertificadosUtils.CODIF_ARCHIVO_PEM)) {	
 				
@@ -2027,9 +2039,9 @@ public class WriteCertificados {
 					writer.write((String) archivo);					
 				}
 				writer.flush();
-				System.out.println("--- Se ha creado el archivo "+ nomArch +" ---");
-				//System.out.println("--- Archivo generado: " + nomArch+extension  + " ---");
-			}else if(codifArch.equalsIgnoreCase(CertificadosUtils.CODIF_ARCHIVO_DER)){
+				
+			}
+			else if(codifArch.equalsIgnoreCase(CertificadosUtils.CODIF_ARCHIVO_DER)){
 				System.out.println("WriteCertificados.escritorDeArchivos() - archivo DER\n");							
 				
 				byte[] datos = null;
@@ -2105,14 +2117,20 @@ public class WriteCertificados {
 				 **/
 				writer.write((String) archivo);
 				writer.flush();
+				
 			}
 		} catch (IOException e) {
 			System.out.println("Excepcion generada:\n");
 			e.printStackTrace();
+			throw new IOException("Excepcion generada al crear el archivo de " + nomArch);
 		} catch (CertificateEncodingException e) {
 			System.out.println("Excepción relacionada con el Certificado:\n");
 			e.printStackTrace();
+			throw new CertificateEncodingException("Excepción relacionada con el Certificado:\n");
 		}
+		
+		System.out.println("--- Se ha creado el archivo "+ nomArch +"."+ codifArch +" ---");
+		return rutaArch;
 	}
 	
 	/**

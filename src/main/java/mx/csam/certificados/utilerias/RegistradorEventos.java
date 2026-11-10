@@ -5,12 +5,18 @@ import java.util.ArrayList;
 public class RegistradorEventos {
 
 	//PROPIEDADES
-	private StringBuilder msj = null;	
-	private StringBuilder err = null;
+	private static StringBuilder msj = null;	
+	private static StringBuilder err = null;
 	private static ArrayList<CharSequence> logs = null;
 	
 	//CONSTRUCTOR
 	public RegistradorEventos() {
+		/*msj = new StringBuilder();
+		err = new StringBuilder();
+		logs = new ArrayList<CharSequence>();*/
+	}
+	
+	static {
 		msj = new StringBuilder();
 		err = new StringBuilder();
 		logs = new ArrayList<CharSequence>();

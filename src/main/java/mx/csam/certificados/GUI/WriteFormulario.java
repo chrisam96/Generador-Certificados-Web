@@ -9,13 +9,16 @@ import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TimeZone;
 
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
@@ -193,6 +196,7 @@ public class WriteFormulario /*extends JDialog*/ {
 	
 	//CLASES PARA LAS ACCIONES DE LOS EVENTOS
 	private Eventos eventos =  null;
+	private boolean fueCancelado = true;
 	
 	//MENSAJES PARA LOS JOptionPane
 	String texKPG_JOP = "";
@@ -700,7 +704,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		lblFecVigSer1.setName("lblFecVigSer1");
 		lblFecVigSer1.setText("Año(s):");
 		lblFecVigSer1.setFont(fteTextos);
-		lblFecVigSer1.setForeground(Color.BLACK);
+		lblFecVigSer1.setForeground(Color.BLACK);		
 		i = getTamanioAnchoTexto(lblFecVigSer1);
 		lblFecVigSer1.setBounds(tamAncTex + spaceHor, tamAltoTex + spaceVer, i, altLbl);//165
 		System.out.println(lblFecVigSer1.getName() + " : " + lblFecVigSer1.getBounds());
@@ -716,6 +720,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		//txtFecVigSer1.setBorder(null); // Quita el borde de caja de texto
 		txtFecVigSer1.setOpaque(true);// Hace el fondo transparente como un JLabel
 		txtFecVigSer1.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtFecVigSer1.addKeyListener(eventos);
 		txtFecVigSer1.setBounds(tamAncTex, tamAltoTex + spaceVer , 100, altTxt);
 		System.out.println(txtFecVigSer1.getName() + " : " + txtFecVigSer1.getBounds());
 		
@@ -739,6 +744,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		txtFecVigSer2.setEnabled(true);
 		txtFecVigSer2.setOpaque(true);// Hace el fondo transparente como un JLabel
 		txtFecVigSer2.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtFecVigSer2.addKeyListener(eventos);
 		txtFecVigSer2.setBounds(tamAncTex, tamAltoTex + spaceVer, 150, altTxt);
 		System.out.println(txtFecVigSer2.getName() + " : " + txtFecVigSer2.getBounds());
 		
@@ -763,6 +769,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		txtFecVigSer3.setEnabled(true);
 		txtFecVigSer3.setOpaque(true);// Hace el fondo transparente como un JLabel
 		txtFecVigSer3.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtFecVigSer3.addKeyListener(eventos);
 		txtFecVigSer3.setBounds(tamAncTex, tamAltoTex + spaceVer, 150, altTxt);
 		System.out.println(txtFecVigSer3.getName() + " : " + txtFecVigSer3.getBounds());
 		
@@ -775,7 +782,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		lblFecVigSer4.setFont(fteTextos);
 		lblFecVigSer4.setForeground(Color.BLACK);
 		i = getTamanioAnchoTexto(lblFecVigSer4);
-		lblFecVigSer4.setBounds(tamAncTex + spaceHor, tamAltoTex + spaceVer, i, altLbl);
+		lblFecVigSer4.setBounds(tamAncTex + spaceHor, tamAltoTex + spaceVer, i, altLbl);		
 		System.out.println(lblFecVigSer4.getName() + " : " + lblFecVigSer4.getBounds());
 		
 		tamAncTex = getPosicionAncho(lblFecVigSer4);
@@ -787,6 +794,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		txtFecVigSer4.setEnabled(true);
 		txtFecVigSer4.setOpaque(true);// Hace el fondo transparente como un JLabel
 		txtFecVigSer4.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtFecVigSer4.addKeyListener(eventos);
 		txtFecVigSer4.setBounds(tamAncTex, tamAltoTex + spaceVer, 150, altTxt);
 		System.out.println(txtFecVigSer4.getName() + " : " + txtFecVigSer4.getBounds());
 		
@@ -810,6 +818,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		txtFecVigSer5.setEnabled(true);
 		txtFecVigSer5.setOpaque(true);// Hace el fondo transparente como un JLabel
 		txtFecVigSer5.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtFecVigSer5.addKeyListener(eventos);
 		txtFecVigSer5.setBounds(tamAncTex, tamAltoTex + spaceVer, 150, altTxt);
 		System.out.println(txtFecVigSer5.getName() + " : " + txtFecVigSer5.getBounds());		
 		
@@ -833,6 +842,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		txtFecVigSer6.setEnabled(true);
 		txtFecVigSer6.setOpaque(true);// Hace el fondo transparente como un JLabel
 		txtFecVigSer6.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtFecVigSer6.addKeyListener(eventos);
 		txtFecVigSer6.setBounds(tamAncTex, tamAltoTex + spaceVer, 150, altTxt);
 		System.out.println(txtFecVigSer6.getName() + " : " + txtFecVigSer6.getBounds());
 				
@@ -860,6 +870,7 @@ public class WriteFormulario /*extends JDialog*/ {
 		txtFecVigSer7.setEnabled(true);
 		txtFecVigSer7.setOpaque(true);// Hace el fondo transparente como un JLabel
 		txtFecVigSer7.setFocusable(true);// Permite que el usuario haga clic para seleccionar
+		txtFecVigSer7.addKeyListener(eventos);
 		txtFecVigSer7.setBounds(tamAncTex + spaceHor, tamAltoTex + spaceVer, 300, altTxt);
 		System.out.println(txtFecVigSer7.getName() + " : " + txtFecVigSer7.getBounds());
 		
@@ -1256,7 +1267,14 @@ public class WriteFormulario /*extends JDialog*/ {
 		return this.pojo;
 	}
 	
-	private class Eventos implements java.awt.event.ActionListener, ItemListener{
+	public boolean fueCancelado() {
+		return fueCancelado;
+	}
+	
+	private class Eventos 
+	implements java.awt.event.ActionListener, 
+	ItemListener, WindowListener, KeyListener
+	{
 
 		//private JDialog jDialog = null;
 		private WriteFormulario jD = null;
@@ -1271,18 +1289,18 @@ public class WriteFormulario /*extends JDialog*/ {
 			this.jD = jDialog;
 		}
 		
+		//---------------------------------------------------------------------------------------------------------
+		//ActionListener
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			final String texNada = "(No es necesario)";
+			final String init_texKPG = "Seleccione ";
+			final String fin_texKPG = " para el cifrado de la Private Key.";
 			
 			final String[] texKPG_RSA_DSA = {"el tamaño de la Key (en bits):","el algoritmo simetrico:"};
 			final String[] texKPG_EC = {"la curva inicializadora:",texNada};
 			final String[] texKPG_GOST = {"la generación de la curva:","la curva inicializadora:"};
 			final String[] texKPG_Ed25519_Ed448 = {texNada,texNada};
-			
-			
-			final String init_texKPG = "Seleccione ";
-			final String fin_texKPG = " para el cifrado de la Private Key.";
 			
 			
 			if (e.getSource() == jD.cobAlg) {
@@ -1527,8 +1545,7 @@ public class WriteFormulario /*extends JDialog*/ {
 						.replace("[5]", ( txtFecVigSer6.getText().isBlank() ) ? "0" : txtFecVigSer6.getText())
 						;
 				
-				String serial = (txtFecVigSer7.getText().isBlank() ) ? null : txtFecVigSer7.getText();
-				
+				String serial = (txtFecVigSer7.getText().isBlank() ) ? null : txtFecVigSer7.getText();			
 				
 				/*String[] vig_y_serial:
 				 * 
@@ -1695,14 +1712,65 @@ public class WriteFormulario /*extends JDialog*/ {
 				
 				jD.pojo.set_SAN(null);
 				
+				/*Bool para saber si se cancelo el formulario.
+				 * true = Click a la X de la ventana o al botón Cancelar
+				 * false = Click al botón Ok
+				 * */
+				fueCancelado = false;
+				
 				jD.dia.dispose();
 			}
 			
 			if (e.getSource() == jD.btnCancel) {
+				fueCancelado = true;
 				jD.dia.dispose();
 			}
 		}
 
+		private boolean revisarTextoNumerico
+		(Component comp, JTextField ... txs) 
+		{
+			String s;
+			for(JTextField t: txs) {
+				s = t.getText();
+				for(Character c: s.toCharArray()) {
+					if(!Character.isDigit(c)) {
+						JOptionPane.showMessageDialog(
+							comp, 
+							"No se permiten carácteres no númericos en este campo.",
+							"Advertencia",
+							JOptionPane.ERROR_MESSAGE
+						);
+						return false;
+					}
+				}
+			}
+			return true;
+		}
+		
+		private boolean revisarTextoNumerico
+		(Component comp, JTextField t) 
+		{
+			String s;
+			
+			s = t.getText();
+			for(Character c: s.toCharArray()) {
+				if(!Character.isDigit(c)) {
+					JOptionPane.showMessageDialog(
+							comp, 
+							"No se permiten carácteres no númericos en este campo.",
+							"Advertencia",
+							JOptionPane.ERROR_MESSAGE
+							);
+					return false;
+				}
+			}
+		
+			return true;
+		}
+
+		//---------------------------------------------------------------------------------------------------------
+		//ItemListener
 		@Override
 		public void itemStateChanged(ItemEvent e) {
 			
@@ -1790,6 +1858,83 @@ public class WriteFormulario /*extends JDialog*/ {
 				}
 			}
 		}
+
+		//---------------------------------------------------------------------------------------------------------
+		//WindowListener
+		@Override
+		public void windowOpened(WindowEvent e) {
+			
+		}
+
+		@Override
+		public void windowClosing(WindowEvent e) {
+			fueCancelado = true;
+		}
+
+		@Override
+		public void windowClosed(WindowEvent e) {
+			
+		}
+
+		@Override
+		public void windowIconified(WindowEvent e) {
+			
+		}
+
+		@Override
+		public void windowDeiconified(WindowEvent e) {
+			
+		}
+
+		@Override
+		public void windowActivated(WindowEvent e) {
+			
+		}
+
+		@Override
+		public void windowDeactivated(WindowEvent e) {
+			
+		}
+
+		//---------------------------------------------------------------------------------------------------------
+		//KeyListener
+		@Override
+		public void keyTyped(KeyEvent e) {
+	        char caracter = e.getKeyChar();
+	        
+	        // Verificar si la tecla pulsada no es un dígito y tampoco es la tecla Backspace (\b)
+	        if (!Character.isDigit(caracter) && caracter != '\b') {
+	        	// Ignorar el evento para que no se escriba
+	            e.consume(); 
+	        }
+		}
+
+		@Override
+		public void keyPressed(KeyEvent e) {
+			
+		}
+
+		@Override
+		public void keyReleased(KeyEvent e) {
+			
+			if (e.getSource() == txtFecVigSer1 ||       
+                e.getSource() == txtFecVigSer2 ||
+                e.getSource() == txtFecVigSer3 ||
+	            e.getSource() == txtFecVigSer4 ||
+	            e.getSource() == txtFecVigSer5 ||
+	            e.getSource() == txtFecVigSer6 ||
+	            e.getSource() == txtFecVigSer7 
+	        ) {								
+				if(!revisarTextoNumerico(
+					jD.dia,
+					(JTextField) e.getSource()
+				)) {
+					((JTextField) e.getSource()).setText("");
+				}
+			
+			}
+		}
+		
 		
 	}
 	
